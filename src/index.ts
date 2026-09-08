@@ -1,4 +1,3 @@
-```text
 console.log("NMDBot starting...");
 
 const token = process.env.BOT_TOKEN;
