@@ -12,7 +12,6 @@ console.log("BOT_TOKEN detected!");
 async function main() {
 console.log("Checking Discord Gateway...");
 
-```
 const rest = new REST({ version: "10" }).setToken(token);
 
 const gateway = await rest.get(Routes.gatewayBot());
@@ -57,7 +56,6 @@ await manager.spawn({
 });
 
 console.log("All shards spawned successfully!");
-```
 
 }
 
