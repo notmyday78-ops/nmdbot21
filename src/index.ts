@@ -82,15 +82,13 @@ async function getOptimalShardCount(): Promise<number> {
 	// We take the max between their recommendation and our own tuning
 	// (1 shard per GUILDS_PER_SHARD guilds — more aggressive for lower latency).
 	// discordRecommended * shardMultiplier gives a guild-aware scaling factor.
-	const shardMultiplier = Math.ceil(1000 / GUILDS_PER_SHARD); // 1000 = Discord's baseline per shard
-	const tuned = discordRecommended * shardMultiplier;
-	const final = Math.max(discordRecommended, tuned);
+const final = discordRecommended;
 
-	logger.log(
-		`[Gateway] Tuned shard count: ${final} (Discord: ${discordRecommended} × multiplier: ${shardMultiplier})`
-			.green
-	);
-	return final;
+logger.log(
+	`[Gateway] Using Discord recommended shard count: ${final}`.green
+);
+
+return final;
 }
 
 // Bootstrap
