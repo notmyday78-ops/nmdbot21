@@ -1,4 +1,4 @@
-```ts
+```text
 console.log("NMDBot starting...");
 
 const token = process.env.BOT_TOKEN;
@@ -10,4 +10,3 @@ if (!token) {
 
 console.log("BOT_TOKEN detected!");
 console.log("Starting Discord bot...");
-```
