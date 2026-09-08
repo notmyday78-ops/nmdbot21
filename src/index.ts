@@ -1,6 +1,4 @@
 ```ts
-import "./core/functions/colors.js";
-
 import config from "./files/config.js";
 import logger from "./core/logger.js";
 
@@ -34,22 +32,22 @@ async function getOptimalShardCount(): Promise<number> {
     const concurrency = gateway.session_start_limit.max_concurrency;
 
     logger.log(
-        `[Gateway] Discord recommends: ${discordRecommended} shards`.cyan
+        `[Gateway] Discord recommends: ${discordRecommended} shards`
     );
 
     logger.log(
-        `[Gateway] Session starts remaining: ${remaining}/${total}`.cyan
+        `[Gateway] Session starts remaining: ${remaining}/${total}`
     );
 
     logger.log(
-        `[Gateway] Max concurrency: ${concurrency}`.cyan
+        `[Gateway] Max concurrency: ${concurrency}`
     );
 
     if (remaining < 10) {
         logger.warn(
-            `[Gateway] ⚠️ Only ${remaining} IDENTIFY tokens left — resets in ${Math.round(
+            `[Gateway] Only ${remaining} IDENTIFY tokens left - resets in ${Math.round(
                 gateway.session_start_limit.reset_after / 1000
-            )}s`.yellow
+            )}s`
         );
     }
 
@@ -59,7 +57,7 @@ async function getOptimalShardCount(): Promise<number> {
 
         if (!isNaN(parsed) && parsed >= 1) {
             logger.log(
-                `[Gateway] Using TOTAL_SHARDS override: ${parsed}`.yellow
+                `[Gateway] Using TOTAL_SHARDS override: ${parsed}`
             );
 
             return parsed;
@@ -67,11 +65,11 @@ async function getOptimalShardCount(): Promise<number> {
     }
 
     // Use Discord's recommended shard count.
-    // Do NOT artificially multiply it.
+    // Do not artificially multiply it.
     const final = Math.max(1, discordRecommended);
 
     logger.log(
-        `[Gateway] Using Discord recommended shard count: ${final}`.green
+        `[Gateway] Using Discord recommended shard count: ${final}`
     );
 
     return final;
@@ -80,11 +78,11 @@ async function getOptimalShardCount(): Promise<number> {
 // Check token before starting
 if (!token) {
     logger.err(
-        "[Gateway] ❌ No Discord bot token was provided.".red
+        "[Gateway] No Discord bot token was provided."
     );
 
     logger.err(
-        "[Gateway] Set BOT_TOKEN in Render Environment Variables.".red
+        "[Gateway] Set BOT_TOKEN in Render Environment Variables."
     );
 
     process.exit(1);
@@ -105,31 +103,31 @@ await writeVersionFile(pkg.version);
 
 // Shard events
 manager.on("shardCreate", (shard) => {
-    const tag = `[Shard #${shard.id}]`.cyan;
+    const tag = `[Shard #${shard.id}]`;
 
     logger.log(
-        `${config.console.emojis.HOST} >> ${tag} Spawning...`.green
+        `${config.console.emojis.HOST} >> ${tag} Spawning...`
     );
 
     shard.on("ready", () => {
-        logger.log(`${tag} ✅ Ready`.green);
+        logger.log(`${tag} Ready`);
     });
 
     shard.on("disconnect", () => {
-        logger.warn(`${tag} ⚠️ Disconnected`.yellow);
+        logger.warn(`${tag} Disconnected`);
     });
 
     shard.on("reconnecting", () => {
-        logger.log(`${tag} 🔄 Reconnecting...`.blue);
+        logger.log(`${tag} Reconnecting...`);
     });
 
     shard.on("death", () => {
-        logger.err(`${tag} 💀 Died`.red);
+        logger.err(`${tag} Died`);
     });
 
     shard.on("error", (err) => {
         logger.err(
-            `${tag} Error: ${err.message}`.red
+            `${tag} Error: ${err.message}`
         );
     });
 });
@@ -142,6 +140,6 @@ await manager.spawn({
 });
 
 logger.log(
-    `✅ All ${totalShards} shards spawned`.green
+    `All ${totalShards} shards spawned`
 );
 ```
