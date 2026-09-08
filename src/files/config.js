@@ -9,17 +9,10 @@ const config = {
         defaultMessageCommandsPrefix: "?"
     },
 
-    lavalink: {
-        nodes: [
-            {
-                id: "example_node",
-                host: "lavalink.example.com",
-                port: 2333,
-                authorization: "password",
-                secure: false
-            }
-        ]
-    },
+lavalink: {
+nodes: []
+},
+
 
     core: {
         devMode: true,
