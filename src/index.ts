@@ -3,48 +3,59 @@ import { ShardingManager, REST, Routes } from "discord.js";
 const token = process.env.BOT_TOKEN;
 
 if (!token) {
-    console.error("❌ BOT_TOKEN is missing!");
-    process.exit(1);
+console.error("❌ BOT_TOKEN is missing!");
+process.exit(1);
 }
 
+console.log("✅ BOT_TOKEN detected!");
+
 interface GatewayBotInfo {
-    url: string;
-    shards: number;
-    session_start_limit: {
-        total: number;
-        remaining: number;
-        reset_after: number;
-        max_concurrency: number;
-    };
+url: string;
+shards: number;
+session_start_limit: {
+total: number;
+remaining: number;
+reset_after: number;
+max_concurrency: number;
+};
 }
 
 async function getShardCount(): Promise<number> {
-    console.log("🔎 Checking Discord Gateway...");
+console.log("🔎 Checking Discord Gateway...");
 
-    const rest = new REST({ version: "10" }).setToken(token);
+```
+const rest = new REST({ version: "10" }).setToken(token);
 
-    const gateway = (await rest.get(
-        Routes.gatewayBot()
-    )) as GatewayBotInfo;
+const gateway = (await rest.get(
+    Routes.gatewayBot()
+)) as GatewayBotInfo;
 
-    console.log(
-        `Discord recommends ${gateway.shards} shard(s).`
-    );
+console.log(
+    `Discord recommends ${gateway.shards} shard(s).`
+);
 
-    console.log(
-        `Session starts remaining: ${gateway.session_start_limit.remaining}/${gateway.session_start_limit.total}`
-    );
+console.log(
+    `Session starts remaining: ${gateway.session_start_limit.remaining}/${gateway.session_start_limit.total}`
+);
 
-    console.log(
-        `Max concurrency: ${gateway.session_start_limit.max_concurrency}`
-    );
+console.log(
+    `Max concurrency: ${gateway.session_start_limit.max_concurrency}`
+);
 
-    return Math.max(1, gateway.shards);
+return Math.max(1, gateway.shards);
+```
+
 }
 
+async function main() {
+console.log("🚀 Starting NMDBot...");
+
+```
 const totalShards = await getShardCount();
 
-console.log(`🚀 Starting ${totalShards} shard(s)...`);
+console.log(
+    `🚀 Starting ${totalShards} shard(s)...`
+);
 
 const manager = new ShardingManager(
     "./src/core/bot.ts",
@@ -91,3 +102,12 @@ await manager.spawn({
 console.log(
     `🎉 All ${totalShards} shard(s) spawned successfully!`
 );
+```
+
+}
+
+main().catch((error) => {
+console.error("❌ NMDBot failed to start:");
+console.error(error);
+process.exit(1);
+});
