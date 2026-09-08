@@ -1,18 +1,8 @@
+```ts
 /*
 ・ iHorizon Discord Bot (https://gitlab.com/ihrz/ihrz)
 
 ・ Licensed under the Attribution-NonCommercial-ShareAlike 4.0 International (CC-BY-NC-SA-4.0)
-
-	・   Under the following terms:
-
-		・ Attribution — You must give appropriate credit, provide a link to the license, and indicate if changes were made. You may do so in any reasonable manner, but not in any way that suggests the licensor endorses you or your use.
-
-		・ NonCommercial — You may not use the material for commercial purposes.
-
-		・ ShareAlike — If you remix, transform, or build upon the material, you must distribute your contributions under the same license as the original.
-
-		・ No additional restrictions — You may not apply legal terms or technological measures that legally restrict others from doing anything the license permits.
-
 
 ・ Mainly developed by Kisakay (https://gitlab.com/Kisakay)
 
@@ -29,7 +19,6 @@ import { writeVersionFile } from "./core/modules/releaseNotifier.js";
 import pkg from "../package.json";
 
 const token = process.env.BOT_TOKEN || config.discord.token;
-const GUILDS_PER_SHARD = 700;
 
 interface GatewayBotInfo {
 	url: string;
@@ -45,7 +34,9 @@ interface GatewayBotInfo {
 async function getOptimalShardCount(): Promise<number> {
 	const rest = new REST({ version: "10" }).setToken(token);
 
-	const gateway = (await rest.get(Routes.gatewayBot())) as GatewayBotInfo;
+	const gateway = (await rest.get(
+		Routes.gatewayBot()
+	)) as GatewayBotInfo;
 
 	const discordRecommended = gateway.shards;
 	const remaining = gateway.session_start_limit.remaining;
@@ -55,43 +46,72 @@ async function getOptimalShardCount(): Promise<number> {
 	logger.log(
 		`[Gateway] Discord recommends: ${discordRecommended} shards`.cyan
 	);
+
 	logger.log(
 		`[Gateway] Session starts remaining: ${remaining}/${total}`.cyan
 	);
-	logger.log(`[Gateway] Max concurrency: ${concurrency}`.cyan);
+
+	logger.log(
+		`[Gateway] Max concurrency: ${concurrency}`.cyan
+	);
 
 	if (remaining < 10) {
 		logger.warn(
-			`[Gateway] ⚠️ Only ${remaining} IDENTIFY tokens left — resets in ${Math.round(gateway.session_start_limit.reset_after / 1000)}s`
-				.yellow
+			`[Gateway] ⚠️ Only ${remaining} IDENTIFY tokens left — resets in ${Math.round(
+				gateway.session_start_limit.reset_after / 1000
+			)}s`.yellow
 		);
 	}
 
-	// ENV override takes priority
+	/*
+	 * Allow a manual shard override through Render.
+	 *
+	 * Example:
+	 * TOTAL_SHARDS=1
+	 */
 	if (process.env.TOTAL_SHARDS) {
 		const parsed = Number(process.env.TOTAL_SHARDS);
-		if (!isNaN(parsed)) {
+
+		if (!isNaN(parsed) && parsed >= 1) {
 			logger.log(
 				`[Gateway] Using TOTAL_SHARDS override: ${parsed}`.yellow
 			);
+
 			return parsed;
 		}
 	}
 
-	// Discord's /gateway/bot already accounts for your real guild count.
-	// We take the max between their recommendation and our own tuning
-	// (1 shard per GUILDS_PER_SHARD guilds — more aggressive for lower latency).
-	// discordRecommended * shardMultiplier gives a guild-aware scaling factor.
-const final = discordRecommended;
+	/*
+	 * Use Discord's recommended shard count.
+	 *
+	 * The previous code multiplied Discord's recommendation by
+	 * an additional factor, which caused a small bot to start
+	 * multiple shards unnecessarily.
+	 */
+	const final = Math.max(1, discordRecommended);
 
-logger.log(
-	`[Gateway] Using Discord recommended shard count: ${final}`.green
-);
+	logger.log(
+		`[Gateway] Using Discord recommended shard count: ${final}`.green
+	);
 
-return final;
+	return final;
 }
 
+// --------------------------------------------------
 // Bootstrap
+// --------------------------------------------------
+
+if (!token) {
+	logger.err(
+		"[Gateway] ❌ No Discord bot token was provided.".red
+	);
+
+	logger.err(
+		"[Gateway] Set BOT_TOKEN in Render Environment Variables.".red
+	);
+
+	process.exit(1);
+}
 
 const totalShards = await getOptimalShardCount();
 
@@ -105,21 +125,49 @@ await writeVersionFile(pkg.version);
 
 manager.on("shardCreate", (shard) => {
 	const tag = `[Shard #${shard.id}]`.cyan;
-	logger.log(`${config.console.emojis.HOST} >> ${tag} Spawning...`.green);
 
-	shard.on("ready", () => logger.log(`${tag} ✅ Ready`.green));
-	shard.on("disconnect", () => logger.warn(`${tag} ⚠️ Disconnected`.yellow));
-	shard.on("reconnecting", () =>
-		logger.log(`${tag} 🔄 Reconnecting...`.blue)
+	logger.log(
+		`${config.console.emojis.HOST} >> ${tag} Spawning...`.green
 	);
-	shard.on("death", (proc) => logger.err(`${tag} 💀 Died`.red));
-	shard.on("error", (err) => logger.err(`${tag} Error: ${err.message}`.red));
+
+	shard.on("ready", () => {
+		logger.log(
+			`${tag} ✅ Ready`.green
+		);
+	});
+
+	shard.on("disconnect", () => {
+		logger.warn(
+			`${tag} ⚠️ Disconnected`.yellow
+		);
+	});
+
+	shard.on("reconnecting", () => {
+		logger.log(
+			`${tag} 🔄 Reconnecting...`.blue
+		);
+	});
+
+	shard.on("death", () => {
+		logger.err(
+			`${tag} 💀 Died`.red
+		);
+	});
+
+	shard.on("error", (err) => {
+		logger.err(
+			`${tag} Error: ${err.message}`.red
+		);
+	});
 });
 
 await manager.spawn({
 	amount: totalShards,
 	delay: 5500,
-	timeout: 30_000
+	timeout: 60_000
 });
 
-logger.log(`✅ All ${totalShards} shards spawned`.green);
+logger.log(
+	`✅ All ${totalShards} shards spawned`.green
+);
+```
