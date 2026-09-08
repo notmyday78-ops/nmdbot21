@@ -3,111 +3,66 @@ import { ShardingManager, REST, Routes } from "discord.js";
 const token = process.env.BOT_TOKEN;
 
 if (!token) {
-console.error("❌ BOT_TOKEN is missing!");
+console.error("BOT_TOKEN is missing!");
 process.exit(1);
 }
 
-console.log("✅ BOT_TOKEN detected!");
+console.log("BOT_TOKEN detected!");
 
-interface GatewayBotInfo {
-url: string;
-shards: number;
-session_start_limit: {
-total: number;
-remaining: number;
-reset_after: number;
-max_concurrency: number;
-};
-}
-
-async function getShardCount(): Promise<number> {
-console.log("🔎 Checking Discord Gateway...");
+async function main() {
+console.log("Checking Discord Gateway...");
 
 ```
 const rest = new REST({ version: "10" }).setToken(token);
 
-const gateway = (await rest.get(
-    Routes.gatewayBot()
-)) as GatewayBotInfo;
+const gateway = await rest.get(Routes.gatewayBot());
 
-console.log(
-    `Discord recommends ${gateway.shards} shard(s).`
-);
+const shards = gateway.shards || 1;
 
-console.log(
-    `Session starts remaining: ${gateway.session_start_limit.remaining}/${gateway.session_start_limit.total}`
-);
+console.log("Discord recommends " + shards + " shard(s).");
 
-console.log(
-    `Max concurrency: ${gateway.session_start_limit.max_concurrency}`
-);
+console.log("Starting NMDBot...");
 
-return Math.max(1, gateway.shards);
-```
+const manager = new ShardingManager("./src/core/bot.ts", {
+    token: token,
+    totalShards: shards,
+    respawn: true
+});
 
-}
+manager.on("shardCreate", function (shard) {
+    console.log("Shard #" + shard.id + " spawned.");
 
-async function main() {
-console.log("🚀 Starting NMDBot...");
-
-```
-const totalShards = await getShardCount();
-
-console.log(
-    `🚀 Starting ${totalShards} shard(s)...`
-);
-
-const manager = new ShardingManager(
-    "./src/core/bot.ts",
-    {
-        token,
-        totalShards,
-        respawn: true
-    }
-);
-
-manager.on("shardCreate", (shard) => {
-    console.log(`🟢 Shard #${shard.id} spawned.`);
-
-    shard.on("ready", () => {
-        console.log(`✅ Shard #${shard.id} is READY!`);
+    shard.on("ready", function () {
+        console.log("Shard #" + shard.id + " is READY!");
     });
 
-    shard.on("error", (error) => {
-        console.error(
-            `❌ Shard #${shard.id} error:`,
-            error
-        );
+    shard.on("error", function (error) {
+        console.error("Shard #" + shard.id + " error:");
+        console.error(error);
     });
 
-    shard.on("disconnect", () => {
-        console.log(
-            `⚠️ Shard #${shard.id} disconnected.`
-        );
+    shard.on("disconnect", function () {
+        console.log("Shard #" + shard.id + " disconnected.");
     });
 
-    shard.on("reconnecting", () => {
-        console.log(
-            `🔄 Shard #${shard.id} reconnecting...`
-        );
+    shard.on("reconnecting", function () {
+        console.log("Shard #" + shard.id + " reconnecting.");
     });
 });
 
 await manager.spawn({
-    amount: totalShards,
+    amount: shards,
     delay: 5500,
     timeout: 60000
 });
 
-console.log(
-    `🎉 All ${totalShards} shard(s) spawned successfully!`
-);
+console.log("All shards spawned successfully!");
 ```
 
 }
 
-main().catch((error) => {
-console.error("❌ NMDBot failed to start:");
+main().catch(function (error) {
+console.error("NMDBot failed to start:");
 console.error(error);
 process.exit(1);
 });
