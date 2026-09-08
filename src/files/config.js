@@ -1,5 +1,3 @@
-import { ConfigData } from "../../types/configDatad.js";
-
 const config = {
     discord: {
         token: process.env.BOT_TOKEN,
