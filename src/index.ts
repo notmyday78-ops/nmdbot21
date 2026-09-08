@@ -1,4 +1,3 @@
-```ts
 import { ShardingManager, REST, Routes } from "discord.js";
 import { createServer } from "http";
 
@@ -76,4 +75,3 @@ main().catch(function (error) {
     console.error(error);
     process.exit(1);
 });
-```
