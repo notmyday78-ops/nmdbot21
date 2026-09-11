@@ -1,0 +1,11 @@
+{
+  "categoryInitializer": {
+    "categoryName": "servermaker",
+    "categoryColor": "#5865F2",
+    "options": {
+      "description": "Automatic server setup",
+      "emoji": "🏗️",
+      "placeholder": "Server Maker"
+    }
+  }
+}
