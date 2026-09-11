@@ -1,7 +1,7 @@
 {
-"name": "nmdbot",
-"displayName": "NMDBot",
-"description": "NMDBot — a powerful multipurpose Discord bot."
+	"name": "nmdbot",
+	"displayName": "NMDBot",
+	"description": "NMDBot — a powerful multipurpose Discord bot.",
 	"main": "./src/index.ts",
 	"scripts": {
 		"start": "bun ./src/index.ts",
@@ -13,30 +13,30 @@
 		"check:lines": "bun run tools/Lines_Count.ts",
 		"check:lc": "bun run check:lines",
 		"check:emoji": "bun run tools/Emoji_Creator.ts",
+		"check:licence": "bun run tools/Licence_Workspace_Checker.ts",
 		"dev": "echo \"Enjoy dev <3\" && bun run src/core/bot.ts",
 		"format": "prettier --write \"**/*.ts\""
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://gitlab.com/ihrz/ihrz"
+		"url": "https://github.com/notmyday78-ops/nmdbot21.git"
 	},
 	"keywords": [
 		"discordbot",
 		"discordjs",
-		"discord-bot"
+		"discord-bot",
+		"nmdbot"
 	],
 	"type": "module",
 	"author": {
 		"email": "notmyday78@gmail.com",
-		"name": "Notmyday",
-		"legalName": "Anaïs Saraiva",
-		"url": ""
+		"name": "Notmyday"
 	},
 	"license": "CC-BY-NC-SA-4.0",
 	"bugs": {
-		"url": "https://gitlab.com/ihrz/ihrz/issues"
+		"url": "https://github.com/notmyday78-ops/nmdbot21/issues"
 	},
-	"homepage": "https://gitlab.com/ihrz/ihrz#readme",
+	"homepage": "https://github.com/notmyday78-ops/nmdbot21#readme",
 	"dependencies": {
 		"discord-html-transcripts": "3.2.0",
 		"discord.js": "^14.27.0",
