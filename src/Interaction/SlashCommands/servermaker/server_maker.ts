@@ -4,9 +4,9 @@
  * Creates and automatically configures a complete Discord server.
  *
  * Features:
- * - 200 role definitions
- * - 100+ channel definitions
- * - Automatic ticket configuration
+ * - Large role system
+ * - Large channel/category system
+ * - Automatic real ticket panel
  * - Automatic XP / leveling configuration
  * - Automatic logging configuration
  * - Automatic welcome configuration
@@ -17,11 +17,13 @@
  * - Automatic leaderboard configuration
  * - Automatic bot-channel configuration
  * - Automatic staff-role configuration
+ * - Server Owner role assignment
  * - Existing channels and roles are preserved
  * - Safe to run multiple times
  */
 
 import {
+  ActionRowBuilder,
   ApplicationCommandType,
   ChannelType,
   PermissionFlagsBits,
@@ -30,10 +32,14 @@ import {
   EmbedBuilder,
   Role,
   TextChannel,
-  CategoryChannel
+  CategoryChannel,
+  StringSelectMenuBuilder,
+  StringSelectMenuOptionBuilder,
+  Message
 } from "discord.js";
 
 import { Command } from "../../../../types/command.js";
+import { metasTable } from "../../../Events/client/ready.js";
 
 type RoleDefinition = {
   name: string;
@@ -719,6 +725,47 @@ export const command: Command = {
 
       /*
        * ============================================================
+       * 👑 SERVER OWNER ROLE
+       * ============================================================
+       */
+
+      try {
+        const ownerRole = roles.get("Server Owner");
+
+        if (ownerRole && guild.ownerId) {
+          const ownerMember =
+            await guild.members.fetch(guild.ownerId);
+
+          if (
+            ownerMember &&
+            !ownerMember.roles.cache.has(ownerRole.id)
+          ) {
+            await ownerMember.roles.add(
+              ownerRole,
+              "NMDBot Universal Server Maker - Server Owner"
+            );
+          }
+
+          if (
+            me.roles.highest.position >
+              ownerRole.position + 1 &&
+            me.roles.highest.id !== ownerRole.id
+          ) {
+            await ownerRole.setPosition(
+              me.roles.highest.position - 1,
+              "NMDBot Universal Server Maker - role hierarchy"
+            );
+          }
+        }
+      } catch (error) {
+        console.error(
+          "[Server Maker] Failed to configure Server Owner role:",
+          error
+        );
+      }
+
+      /*
+       * ============================================================
        * CATEGORY DEFINITIONS
        * ============================================================
        */
@@ -754,23 +801,27 @@ export const command: Command = {
         "🗄️ ARCHIVE"
       ];
 
-      const categories = new Map<string, CategoryChannel>();
+      const categories =
+        new Map<string, CategoryChannel>();
 
       let categoriesCreated = 0;
 
       for (const name of categoryNames) {
-        let category = guild.channels.cache.find(
-          (channel) =>
-            channel.type === ChannelType.GuildCategory &&
-            channel.name === name
-        ) as CategoryChannel | undefined;
+        let category =
+          guild.channels.cache.find(
+            (channel) =>
+              channel.type === ChannelType.GuildCategory &&
+              channel.name === name
+          ) as CategoryChannel | undefined;
 
         if (!category) {
-          category = await guild.channels.create({
-            name,
-            type: ChannelType.GuildCategory,
-            reason: "NMDBot Universal Server Maker"
-          });
+          category =
+            await guild.channels.create({
+              name,
+              type: ChannelType.GuildCategory,
+              reason:
+                "NMDBot Universal Server Maker"
+            });
 
           categoriesCreated++;
         }
@@ -786,30 +837,102 @@ export const command: Command = {
 
       const channels: ChannelDefinition[] = [
         // INFORMATION
-        { name: "welcome", category: "📌 INFORMATION", readonly: true },
-        { name: "rules", category: "📌 INFORMATION", readonly: true },
-        { name: "server-info", category: "📌 INFORMATION", readonly: true },
-        { name: "server-guide", category: "📌 INFORMATION", readonly: true },
-        { name: "faq", category: "📌 INFORMATION" },
-        { name: "getting-started", category: "📌 INFORMATION" },
-        { name: "server-links", category: "📌 INFORMATION", readonly: true },
-        { name: "important-info", category: "📌 INFORMATION", readonly: true },
+        {
+          name: "welcome",
+          category: "📌 INFORMATION",
+          readonly: true
+        },
+        {
+          name: "rules",
+          category: "📌 INFORMATION",
+          readonly: true
+        },
+        {
+          name: "server-info",
+          category: "📌 INFORMATION",
+          readonly: true
+        },
+        {
+          name: "server-guide",
+          category: "📌 INFORMATION",
+          readonly: true
+        },
+        {
+          name: "faq",
+          category: "📌 INFORMATION"
+        },
+        {
+          name: "getting-started",
+          category: "📌 INFORMATION"
+        },
+        {
+          name: "server-links",
+          category: "📌 INFORMATION",
+          readonly: true
+        },
+        {
+          name: "important-info",
+          category: "📌 INFORMATION",
+          readonly: true
+        },
 
         // WELCOME
-        { name: "introductions", category: "👋 WELCOME" },
-        { name: "say-hi", category: "👋 WELCOME" },
-        { name: "new-member-chat", category: "👋 WELCOME" },
-        { name: "verification", category: "👋 WELCOME" },
-        { name: "roles", category: "👋 WELCOME" },
-        { name: "role-info", category: "👋 WELCOME" },
+        {
+          name: "introductions",
+          category: "👋 WELCOME"
+        },
+        {
+          name: "say-hi",
+          category: "👋 WELCOME"
+        },
+        {
+          name: "new-member-chat",
+          category: "👋 WELCOME"
+        },
+        {
+          name: "verification",
+          category: "👋 WELCOME"
+        },
+        {
+          name: "roles",
+          category: "👋 WELCOME"
+        },
+        {
+          name: "role-info",
+          category: "👋 WELCOME"
+        },
 
         // ANNOUNCEMENTS
-        { name: "announcements", category: "📢 ANNOUNCEMENTS", readonly: true },
-        { name: "updates", category: "📢 ANNOUNCEMENTS", readonly: true },
-        { name: "news", category: "📢 ANNOUNCEMENTS", readonly: true },
-        { name: "maintenance", category: "📢 ANNOUNCEMENTS", readonly: true },
-        { name: "changelog", category: "📢 ANNOUNCEMENTS", readonly: true },
-        { name: "bot-updates", category: "📢 ANNOUNCEMENTS", readonly: true },
+        {
+          name: "announcements",
+          category: "📢 ANNOUNCEMENTS",
+          readonly: true
+        },
+        {
+          name: "updates",
+          category: "📢 ANNOUNCEMENTS",
+          readonly: true
+        },
+        {
+          name: "news",
+          category: "📢 ANNOUNCEMENTS",
+          readonly: true
+        },
+        {
+          name: "maintenance",
+          category: "📢 ANNOUNCEMENTS",
+          readonly: true
+        },
+        {
+          name: "changelog",
+          category: "📢 ANNOUNCEMENTS",
+          readonly: true
+        },
+        {
+          name: "bot-updates",
+          category: "📢 ANNOUNCEMENTS",
+          readonly: true
+        },
 
         // COMMUNITY
         { name: "general", category: "💬 COMMUNITY" },
@@ -825,196 +948,640 @@ export const command: Command = {
 
         // EVENTS
         { name: "events", category: "🎉 EVENTS" },
-        { name: "event-info", category: "🎉 EVENTS", readonly: true },
+        {
+          name: "event-info",
+          category: "🎉 EVENTS",
+          readonly: true
+        },
         { name: "event-chat", category: "🎉 EVENTS" },
-        { name: "event-planning", category: "🎉 EVENTS", staffOnly: true },
-        { name: "event-results", category: "🎉 EVENTS", readonly: true },
-        { name: "calendar", category: "🎉 EVENTS", readonly: true },
+        {
+          name: "event-planning",
+          category: "🎉 EVENTS",
+          staffOnly: true
+        },
+        {
+          name: "event-results",
+          category: "🎉 EVENTS",
+          readonly: true
+        },
+        {
+          name: "calendar",
+          category: "🎉 EVENTS",
+          readonly: true
+        },
 
         // GIVEAWAYS
-        { name: "giveaways", category: "🎁 GIVEAWAYS" },
-        { name: "giveaway-info", category: "🎁 GIVEAWAYS", readonly: true },
-        { name: "giveaway-winners", category: "🎁 GIVEAWAYS", readonly: true },
-        { name: "giveaway-staff", category: "🎁 GIVEAWAYS", staffOnly: true },
+        {
+          name: "giveaways",
+          category: "🎁 GIVEAWAYS"
+        },
+        {
+          name: "giveaway-info",
+          category: "🎁 GIVEAWAYS",
+          readonly: true
+        },
+        {
+          name: "giveaway-winners",
+          category: "🎁 GIVEAWAYS",
+          readonly: true
+        },
+        {
+          name: "giveaway-staff",
+          category: "🎁 GIVEAWAYS",
+          staffOnly: true
+        },
 
         // SUGGESTIONS
-        { name: "suggestions", category: "💡 SUGGESTIONS" },
-        { name: "suggestion-discussion", category: "💡 SUGGESTIONS" },
-        { name: "feedback", category: "💡 SUGGESTIONS" },
-        { name: "ideas", category: "💡 SUGGESTIONS" },
-        { name: "approved-ideas", category: "💡 SUGGESTIONS", readonly: true },
+        {
+          name: "suggestions",
+          category: "💡 SUGGESTIONS"
+        },
+        {
+          name: "suggestion-discussion",
+          category: "💡 SUGGESTIONS"
+        },
+        {
+          name: "feedback",
+          category: "💡 SUGGESTIONS"
+        },
+        {
+          name: "ideas",
+          category: "💡 SUGGESTIONS"
+        },
+        {
+          name: "approved-ideas",
+          category: "💡 SUGGESTIONS",
+          readonly: true
+        },
 
         // SUPPORT
-        { name: "create-ticket", category: "🎫 SUPPORT" },
-        { name: "support", category: "🎫 SUPPORT" },
-        { name: "help", category: "🎫 SUPPORT" },
-        { name: "technical-support", category: "🎫 SUPPORT" },
-        { name: "bug-reports", category: "🎫 SUPPORT" },
-        { name: "report-user", category: "🎫 SUPPORT" },
-        { name: "appeals", category: "🎫 SUPPORT" },
-        { name: "ticket-info", category: "🎫 SUPPORT", readonly: true },
+        {
+          name: "create-ticket",
+          category: "🎫 SUPPORT"
+        },
+        {
+          name: "support",
+          category: "🎫 SUPPORT"
+        },
+        {
+          name: "help",
+          category: "🎫 SUPPORT"
+        },
+        {
+          name: "technical-support",
+          category: "🎫 SUPPORT"
+        },
+        {
+          name: "bug-reports",
+          category: "🎫 SUPPORT"
+        },
+        {
+          name: "report-user",
+          category: "🎫 SUPPORT"
+        },
+        {
+          name: "appeals",
+          category: "🎫 SUPPORT"
+        },
+        {
+          name: "ticket-info",
+          category: "🎫 SUPPORT",
+          readonly: true
+        },
 
         // MODERATION
-        { name: "mod-chat", category: "🛡️ MODERATION", staffOnly: true },
-        { name: "mod-reports", category: "🛡️ MODERATION", staffOnly: true },
-        { name: "mod-actions", category: "🛡️ MODERATION", staffOnly: true },
-        { name: "user-reports", category: "🛡️ MODERATION", staffOnly: true },
-        { name: "appeal-review", category: "🛡️ MODERATION", staffOnly: true },
-        { name: "automod", category: "🛡️ MODERATION", staffOnly: true },
-        { name: "raid-protection", category: "🛡️ MODERATION", staffOnly: true },
-        { name: "security", category: "🛡️ MODERATION", staffOnly: true },
+        {
+          name: "mod-chat",
+          category: "🛡️ MODERATION",
+          staffOnly: true
+        },
+        {
+          name: "mod-reports",
+          category: "🛡️ MODERATION",
+          staffOnly: true
+        },
+        {
+          name: "mod-actions",
+          category: "🛡️ MODERATION",
+          staffOnly: true
+        },
+        {
+          name: "user-reports",
+          category: "🛡️ MODERATION",
+          staffOnly: true
+        },
+        {
+          name: "appeal-review",
+          category: "🛡️ MODERATION",
+          staffOnly: true
+        },
+        {
+          name: "automod",
+          category: "🛡️ MODERATION",
+          staffOnly: true
+        },
+        {
+          name: "raid-protection",
+          category: "🛡️ MODERATION",
+          staffOnly: true
+        },
+        {
+          name: "security",
+          category: "🛡️ MODERATION",
+          staffOnly: true
+        },
 
         // STAFF
-        { name: "staff-chat", category: "🔐 STAFF", staffOnly: true },
-        { name: "staff-announcements", category: "🔐 STAFF", staffOnly: true },
-        { name: "staff-meetings", category: "🔐 STAFF", staffOnly: true },
-        { name: "staff-planning", category: "🔐 STAFF", staffOnly: true },
-        { name: "staff-feedback", category: "🔐 STAFF", staffOnly: true },
-        { name: "staff-resources", category: "🔐 STAFF", staffOnly: true },
-        { name: "recruitment", category: "🔐 STAFF", staffOnly: true },
-        { name: "training", category: "🔐 STAFF", staffOnly: true },
+        {
+          name: "staff-chat",
+          category: "🔐 STAFF",
+          staffOnly: true
+        },
+        {
+          name: "staff-announcements",
+          category: "🔐 STAFF",
+          staffOnly: true
+        },
+        {
+          name: "staff-meetings",
+          category: "🔐 STAFF",
+          staffOnly: true
+        },
+        {
+          name: "staff-planning",
+          category: "🔐 STAFF",
+          staffOnly: true
+        },
+        {
+          name: "staff-feedback",
+          category: "🔐 STAFF",
+          staffOnly: true
+        },
+        {
+          name: "staff-resources",
+          category: "🔐 STAFF",
+          staffOnly: true
+        },
+        {
+          name: "recruitment",
+          category: "🔐 STAFF",
+          staffOnly: true
+        },
+        {
+          name: "training",
+          category: "🔐 STAFF",
+          staffOnly: true
+        },
 
         // LOGGING
-        { name: "server-logs", category: "📊 LOGGING", staffOnly: true },
-        { name: "member-logs", category: "📊 LOGGING", staffOnly: true },
-        { name: "message-logs", category: "📊 LOGGING", staffOnly: true },
-        { name: "voice-logs", category: "📊 LOGGING", staffOnly: true },
-        { name: "role-logs", category: "📊 LOGGING", staffOnly: true },
-        { name: "channel-logs", category: "📊 LOGGING", staffOnly: true },
-        { name: "moderation-logs", category: "📊 LOGGING", staffOnly: true },
-        { name: "ticket-logs", category: "📊 LOGGING", staffOnly: true },
-        { name: "security-logs", category: "📊 LOGGING", staffOnly: true },
-        { name: "bot-logs", category: "📊 LOGGING", staffOnly: true },
+        {
+          name: "server-logs",
+          category: "📊 LOGGING",
+          staffOnly: true
+        },
+        {
+          name: "member-logs",
+          category: "📊 LOGGING",
+          staffOnly: true
+        },
+        {
+          name: "message-logs",
+          category: "📊 LOGGING",
+          staffOnly: true
+        },
+        {
+          name: "voice-logs",
+          category: "📊 LOGGING",
+          staffOnly: true
+        },
+        {
+          name: "role-logs",
+          category: "📊 LOGGING",
+          staffOnly: true
+        },
+        {
+          name: "channel-logs",
+          category: "📊 LOGGING",
+          staffOnly: true
+        },
+        {
+          name: "moderation-logs",
+          category: "📊 LOGGING",
+          staffOnly: true
+        },
+        {
+          name: "ticket-logs",
+          category: "📊 LOGGING",
+          staffOnly: true
+        },
+        {
+          name: "security-logs",
+          category: "📊 LOGGING",
+          staffOnly: true
+        },
+        {
+          name: "bot-logs",
+          category: "📊 LOGGING",
+          staffOnly: true
+        },
 
         // BOTS
         { name: "bot-commands", category: "🤖 BOTS" },
-        { name: "bot-help", category: "🤖 BOTS", readonly: true },
-        { name: "bot-status", category: "🤖 BOTS", readonly: true },
+        {
+          name: "bot-help",
+          category: "🤖 BOTS",
+          readonly: true
+        },
+        {
+          name: "bot-status",
+          category: "🤖 BOTS",
+          readonly: true
+        },
         { name: "bot-testing", category: "🤖 BOTS" },
-        { name: "bot-suggestions", category: "🤖 BOTS" },
+        {
+          name: "bot-suggestions",
+          category: "🤖 BOTS"
+        },
         { name: "commands", category: "🤖 BOTS" },
 
         // LEVELING
-        { name: "level-up", category: "⭐ LEVELING", readonly: true },
+        {
+          name: "level-up",
+          category: "⭐ LEVELING",
+          readonly: true
+        },
         { name: "xp-chat", category: "⭐ LEVELING" },
-        { name: "level-info", category: "⭐ LEVELING", readonly: true },
-        { name: "level-rewards", category: "⭐ LEVELING", readonly: true },
-        { name: "xp-leaderboard", category: "⭐ LEVELING", readonly: true },
+        {
+          name: "level-info",
+          category: "⭐ LEVELING",
+          readonly: true
+        },
+        {
+          name: "level-rewards",
+          category: "⭐ LEVELING",
+          readonly: true
+        },
+        {
+          name: "xp-leaderboard",
+          category: "⭐ LEVELING",
+          readonly: true
+        },
 
         // ECONOMY
         { name: "economy", category: "💰 ECONOMY" },
         { name: "shop", category: "💰 ECONOMY" },
         { name: "market", category: "💰 ECONOMY" },
         { name: "trading", category: "💰 ECONOMY" },
-        { name: "economy-news", category: "💰 ECONOMY", readonly: true },
+        {
+          name: "economy-news",
+          category: "💰 ECONOMY",
+          readonly: true
+        },
 
         // LEADERBOARDS
-        { name: "leaderboards", category: "🏆 LEADERBOARDS", readonly: true },
-        { name: "top-members", category: "🏆 LEADERBOARDS", readonly: true },
-        { name: "top-levels", category: "🏆 LEADERBOARDS", readonly: true },
-        { name: "top-economy", category: "🏆 LEADERBOARDS", readonly: true },
-        { name: "top-activity", category: "🏆 LEADERBOARDS", readonly: true },
+        {
+          name: "leaderboards",
+          category: "🏆 LEADERBOARDS",
+          readonly: true
+        },
+        {
+          name: "top-members",
+          category: "🏆 LEADERBOARDS",
+          readonly: true
+        },
+        {
+          name: "top-levels",
+          category: "🏆 LEADERBOARDS",
+          readonly: true
+        },
+        {
+          name: "top-economy",
+          category: "🏆 LEADERBOARDS",
+          readonly: true
+        },
+        {
+          name: "top-activity",
+          category: "🏆 LEADERBOARDS",
+          readonly: true
+        },
 
         // GAMING
         { name: "gaming-chat", category: "🎮 GAMING" },
-        { name: "game-discussion", category: "🎮 GAMING" },
-        { name: "looking-for-group", category: "🎮 GAMING" },
+        {
+          name: "game-discussion",
+          category: "🎮 GAMING"
+        },
+        {
+          name: "looking-for-group",
+          category: "🎮 GAMING"
+        },
         { name: "game-news", category: "🎮 GAMING" },
         { name: "game-clips", category: "🎮 GAMING" },
-        { name: "game-screenshots", category: "🎮 GAMING" },
+        {
+          name: "game-screenshots",
+          category: "🎮 GAMING"
+        },
         { name: "game-guides", category: "🎮 GAMING" },
         { name: "game-reviews", category: "🎮 GAMING" },
 
         // ESPORTS
         { name: "esports", category: "🏅 ESPORTS" },
-        { name: "tournaments", category: "🏅 ESPORTS" },
-        { name: "tournament-info", category: "🏅 ESPORTS", readonly: true },
-        { name: "team-finder", category: "🏅 ESPORTS" },
-        { name: "match-results", category: "🏅 ESPORTS", readonly: true },
+        {
+          name: "tournaments",
+          category: "🏅 ESPORTS"
+        },
+        {
+          name: "tournament-info",
+          category: "🏅 ESPORTS",
+          readonly: true
+        },
+        {
+          name: "team-finder",
+          category: "🏅 ESPORTS"
+        },
+        {
+          name: "match-results",
+          category: "🏅 ESPORTS",
+          readonly: true
+        },
 
         // MEDIA
         { name: "media", category: "🎨 MEDIA" },
         { name: "memes", category: "🎨 MEDIA" },
         { name: "art", category: "🎨 MEDIA" },
-        { name: "photography", category: "🎨 MEDIA" },
+        {
+          name: "photography",
+          category: "🎨 MEDIA"
+        },
         { name: "clips", category: "🎨 MEDIA" },
-        { name: "screenshots", category: "🎨 MEDIA" },
+        {
+          name: "screenshots",
+          category: "🎨 MEDIA"
+        },
         { name: "videos", category: "🎨 MEDIA" },
-        { name: "creative-showcase", category: "🎨 MEDIA" },
+        {
+          name: "creative-showcase",
+          category: "🎨 MEDIA"
+        },
 
         // CREATOR
-        { name: "creator-chat", category: "🎥 CREATOR" },
-        { name: "creator-news", category: "🎥 CREATOR", readonly: true },
-        { name: "creator-showcase", category: "🎥 CREATOR" },
-        { name: "streamers", category: "🎥 CREATOR" },
-        { name: "youtube", category: "🎥 CREATOR" },
-        { name: "content-ideas", category: "🎥 CREATOR" },
-        { name: "creator-support", category: "🎥 CREATOR" },
+        {
+          name: "creator-chat",
+          category: "🎥 CREATOR"
+        },
+        {
+          name: "creator-news",
+          category: "🎥 CREATOR",
+          readonly: true
+        },
+        {
+          name: "creator-showcase",
+          category: "🎥 CREATOR"
+        },
+        {
+          name: "streamers",
+          category: "🎥 CREATOR"
+        },
+        {
+          name: "youtube",
+          category: "🎥 CREATOR"
+        },
+        {
+          name: "content-ideas",
+          category: "🎥 CREATOR"
+        },
+        {
+          name: "creator-support",
+          category: "🎥 CREATOR"
+        },
 
         // DEVELOPMENT
-        { name: "development", category: "💻 DEVELOPMENT" },
-        { name: "coding", category: "💻 DEVELOPMENT" },
-        { name: "programming", category: "💻 DEVELOPMENT" },
-        { name: "developers", category: "💻 DEVELOPMENT" },
-        { name: "projects", category: "💻 DEVELOPMENT" },
-        { name: "github", category: "💻 DEVELOPMENT" },
-        { name: "documentation", category: "💻 DEVELOPMENT" },
-        { name: "dev-help", category: "💻 DEVELOPMENT" },
+        {
+          name: "development",
+          category: "💻 DEVELOPMENT"
+        },
+        {
+          name: "coding",
+          category: "💻 DEVELOPMENT"
+        },
+        {
+          name: "programming",
+          category: "💻 DEVELOPMENT"
+        },
+        {
+          name: "developers",
+          category: "💻 DEVELOPMENT"
+        },
+        {
+          name: "projects",
+          category: "💻 DEVELOPMENT"
+        },
+        {
+          name: "github",
+          category: "💻 DEVELOPMENT"
+        },
+        {
+          name: "documentation",
+          category: "💻 DEVELOPMENT"
+        },
+        {
+          name: "dev-help",
+          category: "💻 DEVELOPMENT"
+        },
 
         // TESTING
-        { name: "testing", category: "🧪 TESTING", staffOnly: true },
-        { name: "bug-testing", category: "🧪 TESTING", staffOnly: true },
-        { name: "feature-testing", category: "🧪 TESTING", staffOnly: true },
-        { name: "beta-testing", category: "🧪 TESTING", staffOnly: true },
-        { name: "development-testing", category: "🧪 TESTING", staffOnly: true },
+        {
+          name: "testing",
+          category: "🧪 TESTING",
+          staffOnly: true
+        },
+        {
+          name: "bug-testing",
+          category: "🧪 TESTING",
+          staffOnly: true
+        },
+        {
+          name: "feature-testing",
+          category: "🧪 TESTING",
+          staffOnly: true
+        },
+        {
+          name: "beta-testing",
+          category: "🧪 TESTING",
+          staffOnly: true
+        },
+        {
+          name: "development-testing",
+          category: "🧪 TESTING",
+          staffOnly: true
+        },
 
         // NEWS
-        { name: "daily-news", category: "📰 NEWS" },
-        { name: "technology-news", category: "📰 NEWS" },
-        { name: "gaming-news", category: "📰 NEWS" },
-        { name: "community-news", category: "📰 NEWS" },
-        { name: "news-discussion", category: "📰 NEWS" },
+        {
+          name: "daily-news",
+          category: "📰 NEWS"
+        },
+        {
+          name: "technology-news",
+          category: "📰 NEWS"
+        },
+        {
+          name: "gaming-news",
+          category: "📰 NEWS"
+        },
+        {
+          name: "community-news",
+          category: "📰 NEWS"
+        },
+        {
+          name: "news-discussion",
+          category: "📰 NEWS"
+        },
 
         // MUSIC
-        { name: "music-chat", category: "🎵 MUSIC" },
-        { name: "music-recommendations", category: "🎵 MUSIC" },
-        { name: "now-playing", category: "🎵 MUSIC" },
-        { name: "music-news", category: "🎵 MUSIC", readonly: true },
+        {
+          name: "music-chat",
+          category: "🎵 MUSIC"
+        },
+        {
+          name: "music-recommendations",
+          category: "🎵 MUSIC"
+        },
+        {
+          name: "now-playing",
+          category: "🎵 MUSIC"
+        },
+        {
+          name: "music-news",
+          category: "🎵 MUSIC",
+          readonly: true
+        },
 
         // EDUCATION
-        { name: "education", category: "📚 EDUCATION" },
-        { name: "homework", category: "📚 EDUCATION" },
-        { name: "study-chat", category: "📚 EDUCATION" },
-        { name: "resources", category: "📚 EDUCATION" },
+        {
+          name: "education",
+          category: "📚 EDUCATION"
+        },
+        {
+          name: "homework",
+          category: "📚 EDUCATION"
+        },
+        {
+          name: "study-chat",
+          category: "📚 EDUCATION"
+        },
+        {
+          name: "resources",
+          category: "📚 EDUCATION"
+        },
 
         // SOCIAL
-        { name: "social", category: "🌍 SOCIAL" },
-        { name: "introduce-yourself", category: "🌍 SOCIAL" },
-        { name: "meetups", category: "🌍 SOCIAL" },
-        { name: "friends", category: "🌍 SOCIAL" },
-        { name: "community-events", category: "🌍 SOCIAL" },
+        {
+          name: "social",
+          category: "🌍 SOCIAL"
+        },
+        {
+          name: "introduce-yourself",
+          category: "🌍 SOCIAL"
+        },
+        {
+          name: "meetups",
+          category: "🌍 SOCIAL"
+        },
+        {
+          name: "friends",
+          category: "🌍 SOCIAL"
+        },
+        {
+          name: "community-events",
+          category: "🌍 SOCIAL"
+        },
 
         // VOICE
-        { name: "General Voice", category: "🔊 VOICE", voice: true },
-        { name: "Gaming Voice", category: "🔊 VOICE", voice: true },
-        { name: "Chill Voice", category: "🔊 VOICE", voice: true },
-        { name: "Music Voice", category: "🔊 VOICE", voice: true },
-        { name: "Study Voice", category: "🔊 VOICE", voice: true },
-        { name: "Event Voice", category: "🔊 VOICE", voice: true },
-        { name: "Private Voice", category: "🔊 VOICE", voice: true },
-        { name: "AFK", category: "🔊 VOICE", voice: true },
+        {
+          name: "General Voice",
+          category: "🔊 VOICE",
+          voice: true
+        },
+        {
+          name: "Gaming Voice",
+          category: "🔊 VOICE",
+          voice: true
+        },
+        {
+          name: "Chill Voice",
+          category: "🔊 VOICE",
+          voice: true
+        },
+        {
+          name: "Music Voice",
+          category: "🔊 VOICE",
+          voice: true
+        },
+        {
+          name: "Study Voice",
+          category: "🔊 VOICE",
+          voice: true
+        },
+        {
+          name: "Event Voice",
+          category: "🔊 VOICE",
+          voice: true
+        },
+        {
+          name: "Private Voice",
+          category: "🔊 VOICE",
+          voice: true
+        },
+        {
+          name: "AFK",
+          category: "🔊 VOICE",
+          voice: true
+        },
 
         // PRIVATE
-        { name: "private-staff", category: "🔒 PRIVATE", staffOnly: true },
-        { name: "private-management", category: "🔒 PRIVATE", staffOnly: true },
-        { name: "private-security", category: "🔒 PRIVATE", staffOnly: true },
-        { name: "private-development", category: "🔒 PRIVATE", staffOnly: true },
+        {
+          name: "private-staff",
+          category: "🔒 PRIVATE",
+          staffOnly: true
+        },
+        {
+          name: "private-management",
+          category: "🔒 PRIVATE",
+          staffOnly: true
+        },
+        {
+          name: "private-security",
+          category: "🔒 PRIVATE",
+          staffOnly: true
+        },
+        {
+          name: "private-development",
+          category: "🔒 PRIVATE",
+          staffOnly: true
+        },
 
         // ARCHIVE
-        { name: "archive", category: "🗄️ ARCHIVE", staffOnly: true },
-        { name: "old-announcements", category: "🗄️ ARCHIVE", staffOnly: true },
-        { name: "old-events", category: "🗄️ ARCHIVE", staffOnly: true },
-        { name: "old-tickets", category: "🗄️ ARCHIVE", staffOnly: true }
+        {
+          name: "archive",
+          category: "🗄️ ARCHIVE",
+          staffOnly: true
+        },
+        {
+          name: "old-announcements",
+          category: "🗄️ ARCHIVE",
+          staffOnly: true
+        },
+        {
+          name: "old-events",
+          category: "🗄️ ARCHIVE",
+          staffOnly: true
+        },
+        {
+          name: "old-tickets",
+          category: "🗄️ ARCHIVE",
+          staffOnly: true
+        }
       ];
 
       /*
@@ -1041,7 +1608,9 @@ export const command: Command = {
         return (channel as TextChannel) || null;
       };
 
-      const getRole = (name: string): Role | null => {
+      const getRole = (
+        name: string
+      ): Role | null => {
         return roles.get(name) || null;
       };
 
@@ -1094,9 +1663,8 @@ export const command: Command = {
       const createChannel = async (
         definition: ChannelDefinition
       ) => {
-        const category = categories.get(
-          definition.category
-        );
+        const category =
+          categories.get(definition.category);
 
         if (!category) {
           console.log(
@@ -1106,11 +1674,12 @@ export const command: Command = {
           return null;
         }
 
-        const existing = guild.channels.cache.find(
-          (channel) =>
-            channel.name === definition.name &&
-            channel.parentId === category.id
-        );
+        const existing =
+          guild.channels.cache.find(
+            (channel) =>
+              channel.name === definition.name &&
+              channel.parentId === category.id
+          );
 
         if (existing) {
           return existing;
@@ -1189,15 +1758,15 @@ export const command: Command = {
       let channelsCreated = 0;
 
       for (const definition of channels) {
-        const category = categories.get(
-          definition.category
-        );
+        const category =
+          categories.get(definition.category);
 
-        const before = guild.channels.cache.find(
-          (channel) =>
-            channel.name === definition.name &&
-            channel.parentId === category?.id
-        );
+        const before =
+          guild.channels.cache.find(
+            (channel) =>
+              channel.name === definition.name &&
+              channel.parentId === category?.id
+          );
 
         const result =
           await createChannel(definition);
@@ -1209,7 +1778,7 @@ export const command: Command = {
 
       /*
        * ============================================================
-       * AUTOMATIC SYSTEM SETUP
+       * SYSTEM SETUP
        * ============================================================
        */
 
@@ -1219,14 +1788,6 @@ export const command: Command = {
       /*
        * ============================================================
        * 🎫 TICKETS
-       * ============================================================
-       *
-       * Native iHorizon ticket keys:
-       *
-       * GUILD.TICKET.category
-       * GUILD.TICKET.logs
-       * GUILD.TICKET.disable
-       *
        * ============================================================
        */
 
@@ -1252,12 +1813,26 @@ export const command: Command = {
           getRole("Head Support") ||
           getRole("Staff");
 
-        if (ticketCategory) {
-          await setConfig(
-            "GUILD.TICKET.category",
-            ticketCategory.id
+        if (!ticketCategory) {
+          throw new Error(
+            "Ticket category not found."
           );
         }
+
+        if (!ticketPanelChannel) {
+          throw new Error(
+            "create-ticket channel not found."
+          );
+        }
+
+        /*
+         * Native ticket configuration.
+         */
+
+        await setConfig(
+          "GUILD.TICKET.category",
+          ticketCategory.id
+        );
 
         if (ticketLogs) {
           await setConfig(
@@ -1267,12 +1842,281 @@ export const command: Command = {
         }
 
         /*
-         * Existing ticket config uses false as enabled.
+         * false means enabled in the
+         * native iHorizon ticket system.
          */
 
         await setConfig(
           "GUILD.TICKET.disable",
           false
+        );
+
+        /*
+         * Native panel identifiers.
+         */
+
+        const panelCode =
+          `NMD_AUTO_${guild.id}`;
+
+        const relatedEmbedId =
+          `NMD_TICKET_EMBED_${guild.id}`;
+
+        /*
+         * Native embed.
+         */
+
+        const ticketEmbed =
+          new EmbedBuilder()
+            .setColor("#5865F2")
+            .setTitle(
+              "🎫 NMDBot Support"
+            )
+            .setDescription(
+              [
+                "Need help? Open a ticket using the menu below.",
+                "",
+                "Choose the type of ticket you want to create:",
+                "",
+                "🆘 **General Support**",
+                "For general questions and help.",
+                "",
+                "💻 **Technical Support**",
+                "For technical problems or bugs.",
+                "",
+                "🚨 **Report**",
+                "Report a member or server issue.",
+                "",
+                "❓ **Question**",
+                "Ask the staff team a question.",
+                "",
+                "Please do not create unnecessary tickets."
+              ].join("\n")
+            )
+            .setFooter({
+              text: "NMDBOT_AUTO_TICKET_PANEL"
+            })
+            .setTimestamp();
+
+        /*
+         * Save embed in native metas table.
+         */
+
+        await metasTable.set(
+          `EMBED.${relatedEmbedId}`,
+          {
+            embedSource:
+              ticketEmbed.toJSON()
+          }
+        );
+
+        /*
+         * Native ticket panel data.
+         */
+
+        const ticketPanelData = {
+          panelCode,
+          relatedEmbedId,
+          placeholder:
+            "🎫 Select a ticket type...",
+          category: ticketCategory.id,
+          ticketChannelPanel:
+            ticketPanelChannel.id,
+
+          config: {
+            rolesToPing:
+              ticketStaff
+                ? [ticketStaff.id]
+                : [],
+
+            optionFields: [
+              {
+                name: "General Support",
+                desc:
+                  "Get help with a general question or problem.",
+                value: "general",
+                emoji: "🆘",
+                categoryId:
+                  ticketCategory.id,
+                rolesToPing:
+                  ticketStaff
+                    ? [ticketStaff.id]
+                    : []
+              },
+
+              {
+                name: "Technical Support",
+                desc:
+                  "Get help with a technical issue or bug.",
+                value: "technical",
+                emoji: "💻",
+                categoryId:
+                  ticketCategory.id,
+                rolesToPing:
+                  ticketStaff
+                    ? [ticketStaff.id]
+                    : []
+              },
+
+              {
+                name: "Report",
+                desc:
+                  "Report a member or server problem.",
+                value: "report",
+                emoji: "🚨",
+                categoryId:
+                  ticketCategory.id,
+                rolesToPing:
+                  ticketStaff
+                    ? [ticketStaff.id]
+                    : []
+              },
+
+              {
+                name: "Question",
+                desc:
+                  "Ask the staff team a question.",
+                value: "question",
+                emoji: "❓",
+                categoryId:
+                  ticketCategory.id,
+                rolesToPing:
+                  ticketStaff
+                    ? [ticketStaff.id]
+                    : []
+              }
+            ],
+
+            pingUser: true,
+            form: [],
+            userSelectPanel: false,
+            deleteButton: true,
+            transcriptButton: true
+          }
+        };
+
+        /*
+         * Save native panel.
+         */
+
+        await client.db.set(
+          `${guild.id}.GUILD.TICKET_PANEL.${panelCode}`,
+          ticketPanelData
+        );
+
+        /*
+         * Find existing automatically generated panel.
+         */
+
+        let panelMessage: Message | null = null;
+
+        try {
+          const existingMessages =
+            await ticketPanelChannel.messages.fetch({
+              limit: 100
+            });
+
+          panelMessage =
+            existingMessages.find(
+              (message) =>
+                message.author.id ===
+                  client.user?.id &&
+                message.embeds.some(
+                  (embed) =>
+                    embed.footer?.text ===
+                    "NMDBOT_AUTO_TICKET_PANEL"
+                )
+            ) || null;
+        } catch (error) {
+          console.error(
+            "[Server Maker] Could not search ticket panel:",
+            error
+          );
+        }
+
+        /*
+         * Real native select menu.
+         */
+
+        const selectMenu =
+          new StringSelectMenuBuilder()
+            .setCustomId(
+              "ticket-open-selection-v2"
+            )
+            .setPlaceholder(
+              "🎫 Select a ticket type..."
+            )
+            .setMinValues(1)
+            .setMaxValues(1)
+            .addOptions(
+              new StringSelectMenuOptionBuilder()
+                .setLabel(
+                  "General Support"
+                )
+                .setDescription(
+                  "Get help with a general question or problem."
+                )
+                .setValue("general")
+                .setEmoji("🆘"),
+
+              new StringSelectMenuOptionBuilder()
+                .setLabel(
+                  "Technical Support"
+                )
+                .setDescription(
+                  "Get help with a technical issue or bug."
+                )
+                .setValue("technical")
+                .setEmoji("💻"),
+
+              new StringSelectMenuOptionBuilder()
+                .setLabel("Report")
+                .setDescription(
+                  "Report a member or server problem."
+                )
+                .setValue("report")
+                .setEmoji("🚨"),
+
+              new StringSelectMenuOptionBuilder()
+                .setLabel("Question")
+                .setDescription(
+                  "Ask the staff team a question."
+                )
+                .setValue("question")
+                .setEmoji("❓")
+            );
+
+        const row =
+          new ActionRowBuilder<StringSelectMenuBuilder>()
+            .addComponents(selectMenu);
+
+        /*
+         * Create or update panel.
+         */
+
+        if (panelMessage) {
+          await panelMessage.edit({
+            embeds: [ticketEmbed],
+            components: [row]
+          });
+        } else {
+          panelMessage =
+            await ticketPanelChannel.send({
+              embeds: [ticketEmbed],
+              components: [row]
+            });
+        }
+
+        /*
+         * IMPORTANT:
+         *
+         * Native interaction handler searches:
+         *
+         * GUILD.TICKET_PANEL.<messageId>
+         */
+
+        await client.db.set(
+          `${guild.id}.GUILD.TICKET_PANEL.${panelMessage.id}`,
+          panelCode
         );
 
         /*
@@ -1286,7 +2130,7 @@ export const command: Command = {
 
         await setConfig(
           "GUILD.SERVER_MAKER.ticket.category",
-          ticketCategory?.id || null
+          ticketCategory.id
         );
 
         await setConfig(
@@ -1296,7 +2140,22 @@ export const command: Command = {
 
         await setConfig(
           "GUILD.SERVER_MAKER.ticket.panelChannel",
-          ticketPanelChannel?.id || null
+          ticketPanelChannel.id
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.ticket.panelMessage",
+          panelMessage.id
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.ticket.panelCode",
+          panelCode
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.ticket.relatedEmbed",
+          relatedEmbedId
         );
 
         await setConfig(
@@ -1305,6 +2164,10 @@ export const command: Command = {
         );
 
         systemsConfigured++;
+
+        console.log(
+          `[Server Maker] Ticket panel ready: ${panelMessage.id}`
+        );
       } catch (error) {
         systemErrors++;
 
@@ -1351,26 +2214,12 @@ export const command: Command = {
             "⭐ LEVELING"
           );
 
-        /*
-         * Real native XP channel key.
-         */
-
         if (xpChannel) {
           await setConfig(
             "GUILD.XP_LEVELING.xpchannels",
             xpChannel.id
           );
         }
-
-        /*
-         * Native code:
-         * false = /config off
-         * "disable" = completely disabled
-         * true = enabled through native command
-         *
-         * We use true here because that is what the existing
-         * native "on" command writes.
-         */
 
         await setConfig(
           "GUILD.XP_LEVELING.disable",
@@ -1419,7 +2268,7 @@ export const command: Command = {
 
       /*
        * ============================================================
-       * 📊 REAL LOGGING CONFIGURATION
+       * 📊 LOGGING
        * ============================================================
        */
 
@@ -1477,37 +2326,58 @@ export const command: Command = {
 
         await setConfig(
           "GUILD.SERVER_MAKER.logging.server",
-          getTextChannel("server-logs", "📊 LOGGING")?.id || null
+          getTextChannel(
+            "server-logs",
+            "📊 LOGGING"
+          )?.id || null
         );
 
         await setConfig(
           "GUILD.SERVER_MAKER.logging.member",
-          getTextChannel("member-logs", "📊 LOGGING")?.id || null
+          getTextChannel(
+            "member-logs",
+            "📊 LOGGING"
+          )?.id || null
         );
 
         await setConfig(
           "GUILD.SERVER_MAKER.logging.message",
-          getTextChannel("message-logs", "📊 LOGGING")?.id || null
+          getTextChannel(
+            "message-logs",
+            "📊 LOGGING"
+          )?.id || null
         );
 
         await setConfig(
           "GUILD.SERVER_MAKER.logging.voice",
-          getTextChannel("voice-logs", "📊 LOGGING")?.id || null
+          getTextChannel(
+            "voice-logs",
+            "📊 LOGGING"
+          )?.id || null
         );
 
         await setConfig(
           "GUILD.SERVER_MAKER.logging.roles",
-          getTextChannel("role-logs", "📊 LOGGING")?.id || null
+          getTextChannel(
+            "role-logs",
+            "📊 LOGGING"
+          )?.id || null
         );
 
         await setConfig(
           "GUILD.SERVER_MAKER.logging.channels",
-          getTextChannel("channel-logs", "📊 LOGGING")?.id || null
+          getTextChannel(
+            "channel-logs",
+            "📊 LOGGING"
+          )?.id || null
         );
 
         await setConfig(
           "GUILD.SERVER_MAKER.logging.moderation",
-          getTextChannel("moderation-logs", "📊 LOGGING")?.id || null
+          getTextChannel(
+            "moderation-logs",
+            "📊 LOGGING"
+          )?.id || null
         );
 
         await setConfig(
@@ -1517,12 +2387,18 @@ export const command: Command = {
 
         await setConfig(
           "GUILD.SERVER_MAKER.logging.security",
-          getTextChannel("security-logs", "📊 LOGGING")?.id || null
+          getTextChannel(
+            "security-logs",
+            "📊 LOGGING"
+          )?.id || null
         );
 
         await setConfig(
           "GUILD.SERVER_MAKER.logging.bot",
-          getTextChannel("bot-logs", "📊 LOGGING")?.id || null
+          getTextChannel(
+            "bot-logs",
+            "📊 LOGGING"
+          )?.id || null
         );
 
         systemsConfigured++;
@@ -2140,7 +3016,7 @@ export const command: Command = {
 
       await setConfig(
         "GUILD.SERVER_MAKER.version",
-        4
+        5
       );
 
       await setConfig(
@@ -2173,16 +3049,26 @@ export const command: Command = {
         systemsConfigured
       );
 
+      await setConfig(
+        "GUILD.SERVER_MAKER.statistics.systemErrors",
+        systemErrors
+      );
+
       /*
        * ============================================================
        * SAVE CATEGORY IDS
        * ============================================================
        */
 
-      const categoryIds: Record<string, string> = {};
+      const categoryIds:
+        Record<string, string> = {};
 
-      for (const [name, category] of categories) {
-        categoryIds[name] = category.id;
+      for (
+        const [name, category]
+        of categories
+      ) {
+        categoryIds[name] =
+          category.id;
       }
 
       await setConfig(
@@ -2306,7 +3192,8 @@ export const command: Command = {
           const alreadyExists =
             messages.some(
               (message) =>
-                message.author.id === client.user?.id &&
+                message.author.id ===
+                  client.user?.id &&
                 message.embeds.some(
                   (embed) =>
                     embed.footer?.text ===
@@ -2350,7 +3237,8 @@ export const command: Command = {
                   ].join("\n")
                 )
                 .setFooter({
-                  text: "NMDBOT_AUTO_SERVER_SETUP"
+                  text:
+                    "NMDBOT_AUTO_SERVER_SETUP"
                 })
                 .setTimestamp();
 
@@ -2382,7 +3270,7 @@ export const command: Command = {
           `⚙️ Systems configured: **${systemsConfigured}**\n` +
           `⚠️ System errors: **${systemErrors}**\n\n` +
           "### 🔧 Automatically configured\n" +
-          "🎫 Ticket configuration\n" +
+          "🎫 Ticket panel + ticket configuration\n" +
           "⭐ XP / Leveling configuration\n" +
           "📊 Server logging\n" +
           "👋 Welcome configuration\n" +
@@ -2393,7 +3281,8 @@ export const command: Command = {
           "🏆 Leaderboard configuration\n" +
           "🤖 Bot channels\n" +
           "📢 Announcement channels\n" +
-          "🔐 Staff roles\n\n" +
+          "🔐 Staff roles\n" +
+          "👑 Server Owner role\n\n" +
           "♻️ Existing roles and channels were preserved.\n" +
           "🔁 Running `/server_maker` again is safe."
       });
