@@ -1,8 +1,7 @@
 {
-	"name": "ihrz",
-	"displayName": "iHorizon Discord Bot",
-	"version": "2026.8.2",
-	"description": "Official codebase of iHorizon Discord Bot.",
+"name": "nmdbot",
+"displayName": "NMDBot",
+"description": "NMDBot — a powerful multipurpose Discord bot."
 	"main": "./src/index.ts",
 	"scripts": {
 		"start": "bun ./src/index.ts",
@@ -28,10 +27,10 @@
 	],
 	"type": "module",
 	"author": {
-		"email": "anais.saraiva@ihorizon.org",
-		"name": "Kisakay",
+		"email": "notmyday78@gmail.com",
+		"name": "Notmyday",
 		"legalName": "Anaïs Saraiva",
-		"url": "https://kisakay.com"
+		"url": ""
 	},
 	"license": "CC-BY-NC-SA-4.0",
 	"bugs": {
