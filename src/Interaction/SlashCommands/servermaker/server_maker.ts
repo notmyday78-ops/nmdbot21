@@ -1,16 +1,22 @@
 /*
  * NMDBot Universal Server Maker
  *
- * Creates a large, generic Discord server structure.
+ * Creates and automatically configures a complete Discord server.
  *
  * Features:
  * - 200 role definitions
  * - 100+ channel definitions
- * - Generic server structure
- * - No customer-specific structure
- * - Staff / moderation / support / community / gaming / creator / bot areas
- * - Logging areas
- * - Voice areas
+ * - Automatic ticket configuration
+ * - Automatic XP / leveling configuration
+ * - Automatic logging configuration
+ * - Automatic welcome configuration
+ * - Automatic suggestions configuration
+ * - Automatic giveaway configuration
+ * - Automatic moderation configuration
+ * - Automatic economy configuration
+ * - Automatic leaderboard configuration
+ * - Automatic bot-channel configuration
+ * - Automatic staff-role configuration
  * - Existing channels and roles are preserved
  * - Safe to run multiple times
  */
@@ -21,7 +27,10 @@ import {
   PermissionFlagsBits,
   ChatInputCommandInteraction,
   Client,
-  Role
+  EmbedBuilder,
+  Role,
+  TextChannel,
+  CategoryChannel
 } from "discord.js";
 
 import { Command } from "../../../../types/command.js";
@@ -45,7 +54,7 @@ export const command: Command = {
   name: "server_maker",
 
   description:
-    "Builds a complete universal Discord server with roles, categories, channels and permissions.",
+    "Builds and automatically configures a complete universal Discord server.",
 
   type: ApplicationCommandType.ChatInput,
 
@@ -64,7 +73,6 @@ export const command: Command = {
     }
 
     const guild = interaction.guild;
-
     const me = guild.members.me;
 
     if (!me) {
@@ -97,70 +105,236 @@ export const command: Command = {
        */
 
       const roleDefinitions: RoleDefinition[] = [
-        /*
-         * MANAGEMENT
-         */
+        // MANAGEMENT
+        {
+          name: "Server Owner",
+          color: "#F1C40F",
+          permissions: [PermissionFlagsBits.Administrator]
+        },
+        {
+          name: "Co Owner",
+          color: "#F39C12",
+          permissions: [PermissionFlagsBits.Administrator]
+        },
+        {
+          name: "Server Director",
+          color: "#E67E22",
+          permissions: [PermissionFlagsBits.ManageGuild]
+        },
+        {
+          name: "Community Director",
+          color: "#E67E22",
+          permissions: [PermissionFlagsBits.ManageGuild]
+        },
+        {
+          name: "Operations Manager",
+          color: "#D35400",
+          permissions: [PermissionFlagsBits.ManageGuild]
+        },
+        {
+          name: "General Manager",
+          color: "#D35400",
+          permissions: [PermissionFlagsBits.ManageGuild]
+        },
+        {
+          name: "Senior Manager",
+          color: "#C0392B",
+          permissions: [PermissionFlagsBits.ManageGuild]
+        },
+        {
+          name: "Manager",
+          color: "#C0392B",
+          permissions: [PermissionFlagsBits.ManageGuild]
+        },
+        {
+          name: "Assistant Manager",
+          color: "#E74C3C",
+          permissions: [PermissionFlagsBits.ManageMessages]
+        },
+        {
+          name: "Administrator",
+          color: "#E74C3C",
+          permissions: [
+            PermissionFlagsBits.ManageGuild,
+            PermissionFlagsBits.ManageChannels,
+            PermissionFlagsBits.ManageRoles
+          ]
+        },
 
-        { name: "Server Owner", color: "#F1C40F", permissions: [PermissionFlagsBits.Administrator] },
-        { name: "Co Owner", color: "#F39C12", permissions: [PermissionFlagsBits.Administrator] },
-        { name: "Server Director", color: "#E67E22", permissions: [PermissionFlagsBits.ManageGuild] },
-        { name: "Community Director", color: "#E67E22", permissions: [PermissionFlagsBits.ManageGuild] },
-        { name: "Operations Manager", color: "#D35400", permissions: [PermissionFlagsBits.ManageGuild] },
-        { name: "General Manager", color: "#D35400", permissions: [PermissionFlagsBits.ManageGuild] },
-        { name: "Senior Manager", color: "#C0392B", permissions: [PermissionFlagsBits.ManageGuild] },
-        { name: "Manager", color: "#C0392B", permissions: [PermissionFlagsBits.ManageGuild] },
-        { name: "Assistant Manager", color: "#E74C3C", permissions: [PermissionFlagsBits.ManageMessages] },
-        { name: "Administrator", color: "#E74C3C", permissions: [PermissionFlagsBits.ManageGuild, PermissionFlagsBits.ManageChannels, PermissionFlagsBits.ManageRoles] },
+        // ADMINISTRATION
+        {
+          name: "Senior Administrator",
+          color: "#FF4757",
+          permissions: [
+            PermissionFlagsBits.ManageGuild,
+            PermissionFlagsBits.ManageChannels
+          ]
+        },
+        {
+          name: "Junior Administrator",
+          color: "#FF6B81",
+          permissions: [PermissionFlagsBits.ManageMessages]
+        },
+        {
+          name: "Head Admin",
+          color: "#FF3838",
+          permissions: [PermissionFlagsBits.ManageGuild]
+        },
+        {
+          name: "Admin Team",
+          color: "#FF4D4D",
+          permissions: [PermissionFlagsBits.ManageMessages]
+        },
+        {
+          name: "Server Manager",
+          color: "#FF6348",
+          permissions: [PermissionFlagsBits.ManageChannels]
+        },
+        {
+          name: "Community Manager",
+          color: "#FF7F50",
+          permissions: [PermissionFlagsBits.ManageMessages]
+        },
+        {
+          name: "Event Manager",
+          color: "#FF9F43",
+          permissions: [PermissionFlagsBits.ManageEvents]
+        },
+        {
+          name: "Partnership Manager",
+          color: "#FECA57",
+          permissions: [PermissionFlagsBits.ManageMessages]
+        },
+        {
+          name: "Media Manager",
+          color: "#F368E0",
+          permissions: [PermissionFlagsBits.ManageMessages]
+        },
+        {
+          name: "Bot Manager",
+          color: "#5F27CD",
+          permissions: [PermissionFlagsBits.ManageMessages]
+        },
 
-        /*
-         * ADMINISTRATION
-         */
+        // MODERATION
+        {
+          name: "Head Moderator",
+          color: "#3498DB",
+          permissions: [
+            PermissionFlagsBits.KickMembers,
+            PermissionFlagsBits.BanMembers,
+            PermissionFlagsBits.ModerateMembers
+          ]
+        },
+        {
+          name: "Senior Moderator",
+          color: "#2980B9",
+          permissions: [
+            PermissionFlagsBits.KickMembers,
+            PermissionFlagsBits.ModerateMembers
+          ]
+        },
+        {
+          name: "Moderator",
+          color: "#1E90FF",
+          permissions: [
+            PermissionFlagsBits.ManageMessages,
+            PermissionFlagsBits.ModerateMembers
+          ]
+        },
+        {
+          name: "Junior Moderator",
+          color: "#54A0FF",
+          permissions: [PermissionFlagsBits.ManageMessages]
+        },
+        {
+          name: "Trial Moderator",
+          color: "#74B9FF",
+          permissions: [PermissionFlagsBits.ManageMessages]
+        },
+        {
+          name: "Moderator Trainee",
+          color: "#A4D4FF",
+          permissions: [PermissionFlagsBits.ManageMessages]
+        },
+        {
+          name: "Chat Moderator",
+          color: "#0984E3",
+          permissions: [PermissionFlagsBits.ManageMessages]
+        },
+        {
+          name: "Voice Moderator",
+          color: "#00A8FF",
+          permissions: [
+            PermissionFlagsBits.MoveMembers,
+            PermissionFlagsBits.MuteMembers,
+            PermissionFlagsBits.DeafenMembers
+          ]
+        },
+        {
+          name: "Game Moderator",
+          color: "#6C5CE7",
+          permissions: [PermissionFlagsBits.ManageMessages]
+        },
+        {
+          name: "Security Moderator",
+          color: "#4834D4",
+          permissions: [PermissionFlagsBits.ViewAuditLog]
+        },
 
-        { name: "Senior Administrator", color: "#FF4757", permissions: [PermissionFlagsBits.ManageGuild, PermissionFlagsBits.ManageChannels] },
-        { name: "Junior Administrator", color: "#FF6B81", permissions: [PermissionFlagsBits.ManageMessages] },
-        { name: "Head Admin", color: "#FF3838", permissions: [PermissionFlagsBits.ManageGuild] },
-        { name: "Admin Team", color: "#FF4D4D", permissions: [PermissionFlagsBits.ManageMessages] },
-        { name: "Server Manager", color: "#FF6348", permissions: [PermissionFlagsBits.ManageChannels] },
-        { name: "Community Manager", color: "#FF7F50", permissions: [PermissionFlagsBits.ManageMessages] },
-        { name: "Event Manager", color: "#FF9F43", permissions: [PermissionFlagsBits.ManageEvents] },
-        { name: "Partnership Manager", color: "#FECA57", permissions: [PermissionFlagsBits.ManageMessages] },
-        { name: "Media Manager", color: "#F368E0", permissions: [PermissionFlagsBits.ManageMessages] },
-        { name: "Bot Manager", color: "#5F27CD", permissions: [PermissionFlagsBits.ManageMessages] },
+        // SUPPORT
+        {
+          name: "Head Support",
+          color: "#9B59B6",
+          permissions: [PermissionFlagsBits.ManageMessages]
+        },
+        {
+          name: "Senior Support",
+          color: "#8E44AD",
+          permissions: [PermissionFlagsBits.ManageMessages]
+        },
+        {
+          name: "Support",
+          color: "#A55EEA",
+          permissions: [PermissionFlagsBits.ManageMessages]
+        },
+        {
+          name: "Junior Support",
+          color: "#BE90D4",
+          permissions: [PermissionFlagsBits.ManageMessages]
+        },
+        {
+          name: "Trial Support",
+          color: "#D6A2E8",
+          permissions: [PermissionFlagsBits.ManageMessages]
+        },
+        {
+          name: "Helper",
+          color: "#C56CF0",
+          permissions: [PermissionFlagsBits.ManageMessages]
+        },
+        {
+          name: "Community Helper",
+          color: "#E056FD",
+          permissions: [PermissionFlagsBits.ManageMessages]
+        },
+        {
+          name: "Ticket Staff",
+          color: "#8854D0",
+          permissions: [PermissionFlagsBits.ManageMessages]
+        },
+        {
+          name: "Customer Support",
+          color: "#A55EEA",
+          permissions: [PermissionFlagsBits.ManageMessages]
+        },
+        {
+          name: "Support Trainee",
+          color: "#D980FA",
+          permissions: [PermissionFlagsBits.ManageMessages]
+        },
 
-        /*
-         * MODERATION
-         */
-
-        { name: "Head Moderator", color: "#3498DB", permissions: [PermissionFlagsBits.KickMembers, PermissionFlagsBits.BanMembers, PermissionFlagsBits.ModerateMembers] },
-        { name: "Senior Moderator", color: "#2980B9", permissions: [PermissionFlagsBits.KickMembers, PermissionFlagsBits.ModerateMembers] },
-        { name: "Moderator", color: "#1E90FF", permissions: [PermissionFlagsBits.ManageMessages, PermissionFlagsBits.ModerateMembers] },
-        { name: "Junior Moderator", color: "#54A0FF", permissions: [PermissionFlagsBits.ManageMessages] },
-        { name: "Trial Moderator", color: "#74B9FF", permissions: [PermissionFlagsBits.ManageMessages] },
-        { name: "Moderator Trainee", color: "#A4D4FF", permissions: [PermissionFlagsBits.ManageMessages] },
-        { name: "Chat Moderator", color: "#0984E3", permissions: [PermissionFlagsBits.ManageMessages] },
-        { name: "Voice Moderator", color: "#00A8FF", permissions: [PermissionFlagsBits.MoveMembers, PermissionFlagsBits.MuteMembers, PermissionFlagsBits.DeafenMembers] },
-        { name: "Game Moderator", color: "#6C5CE7", permissions: [PermissionFlagsBits.ManageMessages] },
-        { name: "Security Moderator", color: "#4834D4", permissions: [PermissionFlagsBits.ViewAuditLog] },
-
-        /*
-         * SUPPORT
-         */
-
-        { name: "Head Support", color: "#9B59B6", permissions: [PermissionFlagsBits.ManageMessages] },
-        { name: "Senior Support", color: "#8E44AD", permissions: [PermissionFlagsBits.ManageMessages] },
-        { name: "Support", color: "#A55EEA", permissions: [PermissionFlagsBits.ManageMessages] },
-        { name: "Junior Support", color: "#BE90D4", permissions: [PermissionFlagsBits.ManageMessages] },
-        { name: "Trial Support", color: "#D6A2E8", permissions: [PermissionFlagsBits.ManageMessages] },
-        { name: "Helper", color: "#C56CF0", permissions: [PermissionFlagsBits.ManageMessages] },
-        { name: "Community Helper", color: "#E056FD", permissions: [PermissionFlagsBits.ManageMessages] },
-        { name: "Ticket Staff", color: "#8854D0", permissions: [PermissionFlagsBits.ManageMessages] },
-        { name: "Customer Support", color: "#A55EEA", permissions: [PermissionFlagsBits.ManageMessages] },
-        { name: "Support Trainee", color: "#D980FA", permissions: [PermissionFlagsBits.ManageMessages] },
-
-        /*
-         * STAFF
-         */
-
+        // STAFF
         { name: "Staff", color: "#636E72" },
         { name: "Senior Staff", color: "#2D3436" },
         { name: "Junior Staff", color: "#636E72" },
@@ -182,10 +356,7 @@ export const command: Command = {
         { name: "Bot Developer", color: "#6C5CE7" },
         { name: "System Administrator", color: "#2F3542" },
 
-        /*
-         * COMMUNITY
-         */
-
+        // COMMUNITY
         { name: "Server Member", color: "#95A5A6" },
         { name: "New Member", color: "#BDC3C7" },
         { name: "Verified Member", color: "#2ECC71" },
@@ -207,10 +378,7 @@ export const command: Command = {
         { name: "Community Veteran", color: "#5352ED" },
         { name: "Legend", color: "#FFA502" },
 
-        /*
-         * CREATOR
-         */
-
+        // CREATOR
         { name: "Content Creator", color: "#E84393" },
         { name: "Streamer", color: "#9147FF" },
         { name: "YouTuber", color: "#FF0000" },
@@ -222,10 +390,7 @@ export const command: Command = {
         { name: "Photographer", color: "#00B894" },
         { name: "Video Editor", color: "#0984E3" },
 
-        /*
-         * GAMING
-         */
-
+        // GAMING
         { name: "Gamer", color: "#00B894" },
         { name: "PC Gamer", color: "#00CEC9" },
         { name: "Console Gamer", color: "#0984E3" },
@@ -247,10 +412,7 @@ export const command: Command = {
         { name: "Fortnite", color: "#9B59B6" },
         { name: "GTA", color: "#2ECC71" },
 
-        /*
-         * INTERESTS
-         */
-
+        // INTERESTS
         { name: "Technology", color: "#0984E3" },
         { name: "Programming", color: "#6C5CE7" },
         { name: "AI", color: "#00CEC9" },
@@ -272,10 +434,7 @@ export const command: Command = {
         { name: "Design", color: "#E056FD" },
         { name: "Hardware", color: "#636E72" },
 
-        /*
-         * LEVEL ROLES
-         */
-
+        // LEVEL ROLES
         { name: "Level 1", color: "#BDC3C7" },
         { name: "Level 2", color: "#BDC3C7" },
         { name: "Level 3", color: "#BDC3C7" },
@@ -297,10 +456,7 @@ export const command: Command = {
         { name: "Level 100", color: "#F1C40F" },
         { name: "Max Level", color: "#FFD700" },
 
-        /*
-         * UTILITY
-         */
-
+        // UTILITY
         { name: "Bots", color: "#5865F2" },
         { name: "Music Bot", color: "#1DB954" },
         { name: "Moderation Bot", color: "#E74C3C" },
@@ -316,9 +472,6 @@ export const command: Command = {
       /*
        * ============================================================
        * ADDITIONAL ROLES
-       *
-       * This guarantees a large role library while keeping names
-       * generic and useful.
        * ============================================================
        */
 
@@ -516,16 +669,8 @@ export const command: Command = {
         "Admin Ping"
       ];
 
-      /*
-       * Add additional roles until we reach 200 definitions.
-       */
-
       for (const name of additionalRoles) {
-        if (
-          !roleDefinitions.some(
-            (role) => role.name === name
-          )
-        ) {
+        if (!roleDefinitions.some((role) => role.name === name)) {
           roleDefinitions.push({
             name,
             color: "#95A5A6"
@@ -542,13 +687,11 @@ export const command: Command = {
        */
 
       const roles = new Map<string, Role>();
-
       let rolesCreated = 0;
 
       for (const definition of roleDefinitions.slice(0, 200)) {
         let role = guild.roles.cache.find(
-          (existing) =>
-            existing.name === definition.name
+          (existing) => existing.name === definition.name
         );
 
         if (!role) {
@@ -611,14 +754,16 @@ export const command: Command = {
         "🗄️ ARCHIVE"
       ];
 
-      const categories = new Map<string, any>();
+      const categories = new Map<string, CategoryChannel>();
+
+      let categoriesCreated = 0;
 
       for (const name of categoryNames) {
         let category = guild.channels.cache.find(
           (channel) =>
             channel.type === ChannelType.GuildCategory &&
             channel.name === name
-        );
+        ) as CategoryChannel | undefined;
 
         if (!category) {
           category = await guild.channels.create({
@@ -626,6 +771,8 @@ export const command: Command = {
             type: ChannelType.GuildCategory,
             reason: "NMDBot Universal Server Maker"
           });
+
+          categoriesCreated++;
         }
 
         categories.set(name, category);
@@ -638,10 +785,7 @@ export const command: Command = {
        */
 
       const channels: ChannelDefinition[] = [
-        /*
-         * INFORMATION
-         */
-
+        // INFORMATION
         { name: "welcome", category: "📌 INFORMATION", readonly: true },
         { name: "rules", category: "📌 INFORMATION", readonly: true },
         { name: "server-info", category: "📌 INFORMATION", readonly: true },
@@ -651,10 +795,7 @@ export const command: Command = {
         { name: "server-links", category: "📌 INFORMATION", readonly: true },
         { name: "important-info", category: "📌 INFORMATION", readonly: true },
 
-        /*
-         * WELCOME
-         */
-
+        // WELCOME
         { name: "introductions", category: "👋 WELCOME" },
         { name: "say-hi", category: "👋 WELCOME" },
         { name: "new-member-chat", category: "👋 WELCOME" },
@@ -662,10 +803,7 @@ export const command: Command = {
         { name: "roles", category: "👋 WELCOME" },
         { name: "role-info", category: "👋 WELCOME" },
 
-        /*
-         * ANNOUNCEMENTS
-         */
-
+        // ANNOUNCEMENTS
         { name: "announcements", category: "📢 ANNOUNCEMENTS", readonly: true },
         { name: "updates", category: "📢 ANNOUNCEMENTS", readonly: true },
         { name: "news", category: "📢 ANNOUNCEMENTS", readonly: true },
@@ -673,10 +811,7 @@ export const command: Command = {
         { name: "changelog", category: "📢 ANNOUNCEMENTS", readonly: true },
         { name: "bot-updates", category: "📢 ANNOUNCEMENTS", readonly: true },
 
-        /*
-         * COMMUNITY
-         */
-
+        // COMMUNITY
         { name: "general", category: "💬 COMMUNITY" },
         { name: "chat", category: "💬 COMMUNITY" },
         { name: "random", category: "💬 COMMUNITY" },
@@ -688,10 +823,7 @@ export const command: Command = {
         { name: "community-talk", category: "💬 COMMUNITY" },
         { name: "hot-topics", category: "💬 COMMUNITY" },
 
-        /*
-         * EVENTS
-         */
-
+        // EVENTS
         { name: "events", category: "🎉 EVENTS" },
         { name: "event-info", category: "🎉 EVENTS", readonly: true },
         { name: "event-chat", category: "🎉 EVENTS" },
@@ -699,29 +831,20 @@ export const command: Command = {
         { name: "event-results", category: "🎉 EVENTS", readonly: true },
         { name: "calendar", category: "🎉 EVENTS", readonly: true },
 
-        /*
-         * GIVEAWAYS
-         */
-
+        // GIVEAWAYS
         { name: "giveaways", category: "🎁 GIVEAWAYS" },
         { name: "giveaway-info", category: "🎁 GIVEAWAYS", readonly: true },
         { name: "giveaway-winners", category: "🎁 GIVEAWAYS", readonly: true },
         { name: "giveaway-staff", category: "🎁 GIVEAWAYS", staffOnly: true },
 
-        /*
-         * SUGGESTIONS
-         */
-
+        // SUGGESTIONS
         { name: "suggestions", category: "💡 SUGGESTIONS" },
         { name: "suggestion-discussion", category: "💡 SUGGESTIONS" },
         { name: "feedback", category: "💡 SUGGESTIONS" },
         { name: "ideas", category: "💡 SUGGESTIONS" },
         { name: "approved-ideas", category: "💡 SUGGESTIONS", readonly: true },
 
-        /*
-         * SUPPORT
-         */
-
+        // SUPPORT
         { name: "create-ticket", category: "🎫 SUPPORT" },
         { name: "support", category: "🎫 SUPPORT" },
         { name: "help", category: "🎫 SUPPORT" },
@@ -731,10 +854,7 @@ export const command: Command = {
         { name: "appeals", category: "🎫 SUPPORT" },
         { name: "ticket-info", category: "🎫 SUPPORT", readonly: true },
 
-        /*
-         * MODERATION
-         */
-
+        // MODERATION
         { name: "mod-chat", category: "🛡️ MODERATION", staffOnly: true },
         { name: "mod-reports", category: "🛡️ MODERATION", staffOnly: true },
         { name: "mod-actions", category: "🛡️ MODERATION", staffOnly: true },
@@ -744,10 +864,7 @@ export const command: Command = {
         { name: "raid-protection", category: "🛡️ MODERATION", staffOnly: true },
         { name: "security", category: "🛡️ MODERATION", staffOnly: true },
 
-        /*
-         * STAFF
-         */
-
+        // STAFF
         { name: "staff-chat", category: "🔐 STAFF", staffOnly: true },
         { name: "staff-announcements", category: "🔐 STAFF", staffOnly: true },
         { name: "staff-meetings", category: "🔐 STAFF", staffOnly: true },
@@ -757,10 +874,7 @@ export const command: Command = {
         { name: "recruitment", category: "🔐 STAFF", staffOnly: true },
         { name: "training", category: "🔐 STAFF", staffOnly: true },
 
-        /*
-         * LOGGING
-         */
-
+        // LOGGING
         { name: "server-logs", category: "📊 LOGGING", staffOnly: true },
         { name: "member-logs", category: "📊 LOGGING", staffOnly: true },
         { name: "message-logs", category: "📊 LOGGING", staffOnly: true },
@@ -772,10 +886,7 @@ export const command: Command = {
         { name: "security-logs", category: "📊 LOGGING", staffOnly: true },
         { name: "bot-logs", category: "📊 LOGGING", staffOnly: true },
 
-        /*
-         * BOTS
-         */
-
+        // BOTS
         { name: "bot-commands", category: "🤖 BOTS" },
         { name: "bot-help", category: "🤖 BOTS", readonly: true },
         { name: "bot-status", category: "🤖 BOTS", readonly: true },
@@ -783,40 +894,28 @@ export const command: Command = {
         { name: "bot-suggestions", category: "🤖 BOTS" },
         { name: "commands", category: "🤖 BOTS" },
 
-        /*
-         * LEVELING
-         */
-
+        // LEVELING
         { name: "level-up", category: "⭐ LEVELING", readonly: true },
         { name: "xp-chat", category: "⭐ LEVELING" },
         { name: "level-info", category: "⭐ LEVELING", readonly: true },
         { name: "level-rewards", category: "⭐ LEVELING", readonly: true },
         { name: "xp-leaderboard", category: "⭐ LEVELING", readonly: true },
 
-        /*
-         * ECONOMY
-         */
-
+        // ECONOMY
         { name: "economy", category: "💰 ECONOMY" },
         { name: "shop", category: "💰 ECONOMY" },
         { name: "market", category: "💰 ECONOMY" },
         { name: "trading", category: "💰 ECONOMY" },
         { name: "economy-news", category: "💰 ECONOMY", readonly: true },
 
-        /*
-         * LEADERBOARDS
-         */
-
+        // LEADERBOARDS
         { name: "leaderboards", category: "🏆 LEADERBOARDS", readonly: true },
         { name: "top-members", category: "🏆 LEADERBOARDS", readonly: true },
         { name: "top-levels", category: "🏆 LEADERBOARDS", readonly: true },
         { name: "top-economy", category: "🏆 LEADERBOARDS", readonly: true },
         { name: "top-activity", category: "🏆 LEADERBOARDS", readonly: true },
 
-        /*
-         * GAMING
-         */
-
+        // GAMING
         { name: "gaming-chat", category: "🎮 GAMING" },
         { name: "game-discussion", category: "🎮 GAMING" },
         { name: "looking-for-group", category: "🎮 GAMING" },
@@ -826,20 +925,14 @@ export const command: Command = {
         { name: "game-guides", category: "🎮 GAMING" },
         { name: "game-reviews", category: "🎮 GAMING" },
 
-        /*
-         * ESPORTS
-         */
-
+        // ESPORTS
         { name: "esports", category: "🏅 ESPORTS" },
         { name: "tournaments", category: "🏅 ESPORTS" },
         { name: "tournament-info", category: "🏅 ESPORTS", readonly: true },
         { name: "team-finder", category: "🏅 ESPORTS" },
         { name: "match-results", category: "🏅 ESPORTS", readonly: true },
 
-        /*
-         * MEDIA
-         */
-
+        // MEDIA
         { name: "media", category: "🎨 MEDIA" },
         { name: "memes", category: "🎨 MEDIA" },
         { name: "art", category: "🎨 MEDIA" },
@@ -849,10 +942,7 @@ export const command: Command = {
         { name: "videos", category: "🎨 MEDIA" },
         { name: "creative-showcase", category: "🎨 MEDIA" },
 
-        /*
-         * CREATOR
-         */
-
+        // CREATOR
         { name: "creator-chat", category: "🎥 CREATOR" },
         { name: "creator-news", category: "🎥 CREATOR", readonly: true },
         { name: "creator-showcase", category: "🎥 CREATOR" },
@@ -861,10 +951,7 @@ export const command: Command = {
         { name: "content-ideas", category: "🎥 CREATOR" },
         { name: "creator-support", category: "🎥 CREATOR" },
 
-        /*
-         * DEVELOPMENT
-         */
-
+        // DEVELOPMENT
         { name: "development", category: "💻 DEVELOPMENT" },
         { name: "coding", category: "💻 DEVELOPMENT" },
         { name: "programming", category: "💻 DEVELOPMENT" },
@@ -874,58 +961,40 @@ export const command: Command = {
         { name: "documentation", category: "💻 DEVELOPMENT" },
         { name: "dev-help", category: "💻 DEVELOPMENT" },
 
-        /*
-         * TESTING
-         */
-
+        // TESTING
         { name: "testing", category: "🧪 TESTING", staffOnly: true },
         { name: "bug-testing", category: "🧪 TESTING", staffOnly: true },
         { name: "feature-testing", category: "🧪 TESTING", staffOnly: true },
         { name: "beta-testing", category: "🧪 TESTING", staffOnly: true },
         { name: "development-testing", category: "🧪 TESTING", staffOnly: true },
 
-        /*
-         * NEWS
-         */
-
+        // NEWS
         { name: "daily-news", category: "📰 NEWS" },
         { name: "technology-news", category: "📰 NEWS" },
         { name: "gaming-news", category: "📰 NEWS" },
         { name: "community-news", category: "📰 NEWS" },
         { name: "news-discussion", category: "📰 NEWS" },
 
-        /*
-         * MUSIC
-         */
-
+        // MUSIC
         { name: "music-chat", category: "🎵 MUSIC" },
         { name: "music-recommendations", category: "🎵 MUSIC" },
         { name: "now-playing", category: "🎵 MUSIC" },
         { name: "music-news", category: "🎵 MUSIC", readonly: true },
 
-        /*
-         * EDUCATION
-         */
-
+        // EDUCATION
         { name: "education", category: "📚 EDUCATION" },
         { name: "homework", category: "📚 EDUCATION" },
         { name: "study-chat", category: "📚 EDUCATION" },
         { name: "resources", category: "📚 EDUCATION" },
 
-        /*
-         * SOCIAL
-         */
-
+        // SOCIAL
         { name: "social", category: "🌍 SOCIAL" },
         { name: "introduce-yourself", category: "🌍 SOCIAL" },
         { name: "meetups", category: "🌍 SOCIAL" },
         { name: "friends", category: "🌍 SOCIAL" },
         { name: "community-events", category: "🌍 SOCIAL" },
 
-        /*
-         * VOICE
-         */
-
+        // VOICE
         { name: "General Voice", category: "🔊 VOICE", voice: true },
         { name: "Gaming Voice", category: "🔊 VOICE", voice: true },
         { name: "Chill Voice", category: "🔊 VOICE", voice: true },
@@ -935,19 +1004,13 @@ export const command: Command = {
         { name: "Private Voice", category: "🔊 VOICE", voice: true },
         { name: "AFK", category: "🔊 VOICE", voice: true },
 
-        /*
-         * PRIVATE
-         */
-
+        // PRIVATE
         { name: "private-staff", category: "🔒 PRIVATE", staffOnly: true },
         { name: "private-management", category: "🔒 PRIVATE", staffOnly: true },
         { name: "private-security", category: "🔒 PRIVATE", staffOnly: true },
         { name: "private-development", category: "🔒 PRIVATE", staffOnly: true },
 
-        /*
-         * ARCHIVE
-         */
-
+        // ARCHIVE
         { name: "archive", category: "🗄️ ARCHIVE", staffOnly: true },
         { name: "old-announcements", category: "🗄️ ARCHIVE", staffOnly: true },
         { name: "old-events", category: "🗄️ ARCHIVE", staffOnly: true },
@@ -956,28 +1019,77 @@ export const command: Command = {
 
       /*
        * ============================================================
-       * CHANNEL HELPER
+       * HELPERS
        * ============================================================
        */
 
-      const getStaffRoles = () => {
+      const getTextChannel = (
+        name: string,
+        categoryName: string
+      ): TextChannel | null => {
+        const category = categories.get(categoryName);
+
+        if (!category) return null;
+
+        const channel = guild.channels.cache.find(
+          (channel) =>
+            channel.type === ChannelType.GuildText &&
+            channel.name === name &&
+            channel.parentId === category.id
+        );
+
+        return (channel as TextChannel) || null;
+      };
+
+      const getRole = (name: string): Role | null => {
+        return roles.get(name) || null;
+      };
+
+      const setConfig = async (
+        key: string,
+        value: unknown
+      ): Promise<boolean> => {
+        try {
+          await client.db.set(
+            `${guild.id}.${key}`,
+            value
+          );
+
+          return true;
+        } catch (error) {
+          console.error(
+            `[Server Maker] Failed to set ${key}:`,
+            error
+          );
+
+          return false;
+        }
+      };
+
+      const getStaffRoles = (): Role[] => {
         return [
-          roles.get("Server Owner"),
-          roles.get("Co Owner"),
-          roles.get("Server Director"),
-          roles.get("Administrator"),
-          roles.get("Senior Administrator"),
-          roles.get("Head Admin"),
-          roles.get("Head Moderator"),
-          roles.get("Senior Moderator"),
-          roles.get("Moderator"),
-          roles.get("Head Support"),
-          roles.get("Senior Support"),
-          roles.get("Support"),
-          roles.get("Staff"),
-          roles.get("Senior Staff")
+          getRole("Server Owner"),
+          getRole("Co Owner"),
+          getRole("Server Director"),
+          getRole("Administrator"),
+          getRole("Senior Administrator"),
+          getRole("Head Admin"),
+          getRole("Head Moderator"),
+          getRole("Senior Moderator"),
+          getRole("Moderator"),
+          getRole("Head Support"),
+          getRole("Senior Support"),
+          getRole("Support"),
+          getRole("Staff"),
+          getRole("Senior Staff")
         ].filter(Boolean) as Role[];
       };
+
+      /*
+       * ============================================================
+       * CREATE CHANNEL HELPER
+       * ============================================================
+       */
 
       const createChannel = async (
         definition: ChannelDefinition
@@ -990,7 +1102,8 @@ export const command: Command = {
           console.log(
             `[Server Maker] Missing category: ${definition.category}`
           );
-          return;
+
+          return null;
         }
 
         const existing = guild.channels.cache.find(
@@ -1076,20 +1189,1181 @@ export const command: Command = {
       let channelsCreated = 0;
 
       for (const definition of channels) {
+        const category = categories.get(
+          definition.category
+        );
+
         const before = guild.channels.cache.find(
           (channel) =>
             channel.name === definition.name &&
-            channel.parentId ===
-              categories.get(definition.category)?.id
+            channel.parentId === category?.id
         );
 
-        const result = await createChannel(
-          definition
-        );
+        const result =
+          await createChannel(definition);
 
         if (!before && result) {
           channelsCreated++;
         }
+      }
+
+      /*
+       * ============================================================
+       * AUTOMATIC SYSTEM SETUP
+       * ============================================================
+       */
+
+      let systemsConfigured = 0;
+      let systemErrors = 0;
+
+      /*
+       * ============================================================
+       * 🎫 TICKETS
+       * ============================================================
+       *
+       * Native iHorizon ticket keys:
+       *
+       * GUILD.TICKET.category
+       * GUILD.TICKET.logs
+       * GUILD.TICKET.disable
+       *
+       * ============================================================
+       */
+
+      try {
+        const ticketCategory =
+          categories.get("🎫 SUPPORT");
+
+        const ticketLogs =
+          getTextChannel(
+            "ticket-logs",
+            "📊 LOGGING"
+          );
+
+        const ticketPanelChannel =
+          getTextChannel(
+            "create-ticket",
+            "🎫 SUPPORT"
+          );
+
+        const ticketStaff =
+          getRole("Ticket Staff") ||
+          getRole("Support") ||
+          getRole("Head Support") ||
+          getRole("Staff");
+
+        if (ticketCategory) {
+          await setConfig(
+            "GUILD.TICKET.category",
+            ticketCategory.id
+          );
+        }
+
+        if (ticketLogs) {
+          await setConfig(
+            "GUILD.TICKET.logs",
+            ticketLogs.id
+          );
+        }
+
+        /*
+         * Existing ticket config uses false as enabled.
+         */
+
+        await setConfig(
+          "GUILD.TICKET.disable",
+          false
+        );
+
+        /*
+         * Server Maker metadata.
+         */
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.ticket.enabled",
+          true
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.ticket.category",
+          ticketCategory?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.ticket.logs",
+          ticketLogs?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.ticket.panelChannel",
+          ticketPanelChannel?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.ticket.staffRole",
+          ticketStaff?.id || null
+        );
+
+        systemsConfigured++;
+      } catch (error) {
+        systemErrors++;
+
+        console.error(
+          "[Server Maker] Ticket setup failed:",
+          error
+        );
+      }
+
+      /*
+       * ============================================================
+       * ⭐ LEVELING
+       * ============================================================
+       */
+
+      try {
+        const xpChannel =
+          getTextChannel(
+            "xp-chat",
+            "⭐ LEVELING"
+          );
+
+        const levelUpChannel =
+          getTextChannel(
+            "level-up",
+            "⭐ LEVELING"
+          );
+
+        const levelInfo =
+          getTextChannel(
+            "level-info",
+            "⭐ LEVELING"
+          );
+
+        const levelRewards =
+          getTextChannel(
+            "level-rewards",
+            "⭐ LEVELING"
+          );
+
+        const xpLeaderboard =
+          getTextChannel(
+            "xp-leaderboard",
+            "⭐ LEVELING"
+          );
+
+        /*
+         * Real native XP channel key.
+         */
+
+        if (xpChannel) {
+          await setConfig(
+            "GUILD.XP_LEVELING.xpchannels",
+            xpChannel.id
+          );
+        }
+
+        /*
+         * Native code:
+         * false = /config off
+         * "disable" = completely disabled
+         * true = enabled through native command
+         *
+         * We use true here because that is what the existing
+         * native "on" command writes.
+         */
+
+        await setConfig(
+          "GUILD.XP_LEVELING.disable",
+          true
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.leveling.enabled",
+          true
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.leveling.xpChannel",
+          xpChannel?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.leveling.levelUpChannel",
+          levelUpChannel?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.leveling.infoChannel",
+          levelInfo?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.leveling.rewardsChannel",
+          levelRewards?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.leveling.leaderboardChannel",
+          xpLeaderboard?.id || null
+        );
+
+        systemsConfigured++;
+      } catch (error) {
+        systemErrors++;
+
+        console.error(
+          "[Server Maker] Leveling setup failed:",
+          error
+        );
+      }
+
+      /*
+       * ============================================================
+       * 📊 REAL LOGGING CONFIGURATION
+       * ============================================================
+       */
+
+      try {
+        const logMap: Record<
+          string,
+          string
+        > = {
+          voice: "voice-logs",
+          moderation: "moderation-logs",
+          message: "message-logs",
+          roles: "role-logs",
+          channel: "channel-logs",
+          antispam: "security-logs",
+          boost: "server-logs",
+          confession: "server-logs",
+          economy: "bot-logs"
+        };
+
+        for (
+          const [type, channelName]
+          of Object.entries(logMap)
+        ) {
+          const channel =
+            getTextChannel(
+              channelName,
+              "📊 LOGGING"
+            );
+
+          if (!channel) continue;
+
+          await setConfig(
+            `GUILD.SERVER_LOGS.${type}`,
+            channel.id
+          );
+        }
+
+        const ticketLog =
+          getTextChannel(
+            "ticket-logs",
+            "📊 LOGGING"
+          );
+
+        if (ticketLog) {
+          await setConfig(
+            "GUILD.TICKET.logs",
+            ticketLog.id
+          );
+        }
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.logging.enabled",
+          true
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.logging.server",
+          getTextChannel("server-logs", "📊 LOGGING")?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.logging.member",
+          getTextChannel("member-logs", "📊 LOGGING")?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.logging.message",
+          getTextChannel("message-logs", "📊 LOGGING")?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.logging.voice",
+          getTextChannel("voice-logs", "📊 LOGGING")?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.logging.roles",
+          getTextChannel("role-logs", "📊 LOGGING")?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.logging.channels",
+          getTextChannel("channel-logs", "📊 LOGGING")?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.logging.moderation",
+          getTextChannel("moderation-logs", "📊 LOGGING")?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.logging.tickets",
+          ticketLog?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.logging.security",
+          getTextChannel("security-logs", "📊 LOGGING")?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.logging.bot",
+          getTextChannel("bot-logs", "📊 LOGGING")?.id || null
+        );
+
+        systemsConfigured++;
+      } catch (error) {
+        systemErrors++;
+
+        console.error(
+          "[Server Maker] Logging setup failed:",
+          error
+        );
+      }
+
+      /*
+       * ============================================================
+       * 👋 WELCOME
+       * ============================================================
+       */
+
+      try {
+        await setConfig(
+          "GUILD.SERVER_MAKER.welcome.enabled",
+          true
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.welcome.channel",
+          getTextChannel(
+            "welcome",
+            "📌 INFORMATION"
+          )?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.welcome.introductions",
+          getTextChannel(
+            "introductions",
+            "👋 WELCOME"
+          )?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.welcome.verification",
+          getTextChannel(
+            "verification",
+            "👋 WELCOME"
+          )?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.welcome.roles",
+          getTextChannel(
+            "roles",
+            "👋 WELCOME"
+          )?.id || null
+        );
+
+        systemsConfigured++;
+      } catch (error) {
+        systemErrors++;
+
+        console.error(
+          "[Server Maker] Welcome setup failed:",
+          error
+        );
+      }
+
+      /*
+       * ============================================================
+       * 💡 SUGGESTIONS
+       * ============================================================
+       */
+
+      try {
+        await setConfig(
+          "GUILD.SERVER_MAKER.suggestions.enabled",
+          true
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.suggestions.channel",
+          getTextChannel(
+            "suggestions",
+            "💡 SUGGESTIONS"
+          )?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.suggestions.discussion",
+          getTextChannel(
+            "suggestion-discussion",
+            "💡 SUGGESTIONS"
+          )?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.suggestions.feedback",
+          getTextChannel(
+            "feedback",
+            "💡 SUGGESTIONS"
+          )?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.suggestions.ideas",
+          getTextChannel(
+            "ideas",
+            "💡 SUGGESTIONS"
+          )?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.suggestions.approved",
+          getTextChannel(
+            "approved-ideas",
+            "💡 SUGGESTIONS"
+          )?.id || null
+        );
+
+        systemsConfigured++;
+      } catch (error) {
+        systemErrors++;
+
+        console.error(
+          "[Server Maker] Suggestions setup failed:",
+          error
+        );
+      }
+
+      /*
+       * ============================================================
+       * 🎁 GIVEAWAYS
+       * ============================================================
+       */
+
+      try {
+        await setConfig(
+          "GUILD.SERVER_MAKER.giveaways.enabled",
+          true
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.giveaways.channel",
+          getTextChannel(
+            "giveaways",
+            "🎁 GIVEAWAYS"
+          )?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.giveaways.info",
+          getTextChannel(
+            "giveaway-info",
+            "🎁 GIVEAWAYS"
+          )?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.giveaways.winners",
+          getTextChannel(
+            "giveaway-winners",
+            "🎁 GIVEAWAYS"
+          )?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.giveaways.staff",
+          getTextChannel(
+            "giveaway-staff",
+            "🎁 GIVEAWAYS"
+          )?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.giveaways.staffRole",
+          getRole("Giveaway Staff")?.id || null
+        );
+
+        systemsConfigured++;
+      } catch (error) {
+        systemErrors++;
+
+        console.error(
+          "[Server Maker] Giveaway setup failed:",
+          error
+        );
+      }
+
+      /*
+       * ============================================================
+       * 🛡️ MODERATION
+       * ============================================================
+       */
+
+      try {
+        await setConfig(
+          "GUILD.SERVER_MAKER.moderation.enabled",
+          true
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.moderation.chat",
+          getTextChannel(
+            "mod-chat",
+            "🛡️ MODERATION"
+          )?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.moderation.reports",
+          getTextChannel(
+            "user-reports",
+            "🛡️ MODERATION"
+          )?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.moderation.actions",
+          getTextChannel(
+            "mod-actions",
+            "🛡️ MODERATION"
+          )?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.moderation.automod",
+          getTextChannel(
+            "automod",
+            "🛡️ MODERATION"
+          )?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.moderation.raidProtection",
+          getTextChannel(
+            "raid-protection",
+            "🛡️ MODERATION"
+          )?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.moderation.security",
+          getTextChannel(
+            "security",
+            "🛡️ MODERATION"
+          )?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.moderation.log",
+          getTextChannel(
+            "moderation-logs",
+            "📊 LOGGING"
+          )?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.moderation.securityLog",
+          getTextChannel(
+            "security-logs",
+            "📊 LOGGING"
+          )?.id || null
+        );
+
+        systemsConfigured++;
+      } catch (error) {
+        systemErrors++;
+
+        console.error(
+          "[Server Maker] Moderation setup failed:",
+          error
+        );
+      }
+
+      /*
+       * ============================================================
+       * 💰 ECONOMY
+       * ============================================================
+       */
+
+      try {
+        await setConfig(
+          "GUILD.SERVER_MAKER.economy.enabled",
+          true
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.economy.channel",
+          getTextChannel(
+            "economy",
+            "💰 ECONOMY"
+          )?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.economy.shop",
+          getTextChannel(
+            "shop",
+            "💰 ECONOMY"
+          )?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.economy.market",
+          getTextChannel(
+            "market",
+            "💰 ECONOMY"
+          )?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.economy.trading",
+          getTextChannel(
+            "trading",
+            "💰 ECONOMY"
+          )?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.economy.news",
+          getTextChannel(
+            "economy-news",
+            "💰 ECONOMY"
+          )?.id || null
+        );
+
+        systemsConfigured++;
+      } catch (error) {
+        systemErrors++;
+
+        console.error(
+          "[Server Maker] Economy setup failed:",
+          error
+        );
+      }
+
+      /*
+       * ============================================================
+       * 🏆 LEADERBOARDS
+       * ============================================================
+       */
+
+      try {
+        await setConfig(
+          "GUILD.SERVER_MAKER.leaderboards.enabled",
+          true
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.leaderboards.main",
+          getTextChannel(
+            "leaderboards",
+            "🏆 LEADERBOARDS"
+          )?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.leaderboards.members",
+          getTextChannel(
+            "top-members",
+            "🏆 LEADERBOARDS"
+          )?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.leaderboards.levels",
+          getTextChannel(
+            "top-levels",
+            "🏆 LEADERBOARDS"
+          )?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.leaderboards.economy",
+          getTextChannel(
+            "top-economy",
+            "🏆 LEADERBOARDS"
+          )?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.leaderboards.activity",
+          getTextChannel(
+            "top-activity",
+            "🏆 LEADERBOARDS"
+          )?.id || null
+        );
+
+        systemsConfigured++;
+      } catch (error) {
+        systemErrors++;
+
+        console.error(
+          "[Server Maker] Leaderboard setup failed:",
+          error
+        );
+      }
+
+      /*
+       * ============================================================
+       * 🤖 BOT CHANNELS
+       * ============================================================
+       */
+
+      try {
+        await setConfig(
+          "GUILD.SERVER_MAKER.bot.enabled",
+          true
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.bot.commands",
+          getTextChannel(
+            "bot-commands",
+            "🤖 BOTS"
+          )?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.bot.help",
+          getTextChannel(
+            "bot-help",
+            "🤖 BOTS"
+          )?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.bot.status",
+          getTextChannel(
+            "bot-status",
+            "🤖 BOTS"
+          )?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.bot.testing",
+          getTextChannel(
+            "bot-testing",
+            "🤖 BOTS"
+          )?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.bot.suggestions",
+          getTextChannel(
+            "bot-suggestions",
+            "🤖 BOTS"
+          )?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.bot.generalCommands",
+          getTextChannel(
+            "commands",
+            "🤖 BOTS"
+          )?.id || null
+        );
+
+        systemsConfigured++;
+      } catch (error) {
+        systemErrors++;
+
+        console.error(
+          "[Server Maker] Bot setup failed:",
+          error
+        );
+      }
+
+      /*
+       * ============================================================
+       * 📢 ANNOUNCEMENTS
+       * ============================================================
+       */
+
+      try {
+        await setConfig(
+          "GUILD.SERVER_MAKER.announcements.enabled",
+          true
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.announcements.main",
+          getTextChannel(
+            "announcements",
+            "📢 ANNOUNCEMENTS"
+          )?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.announcements.updates",
+          getTextChannel(
+            "updates",
+            "📢 ANNOUNCEMENTS"
+          )?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.announcements.news",
+          getTextChannel(
+            "news",
+            "📢 ANNOUNCEMENTS"
+          )?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.announcements.maintenance",
+          getTextChannel(
+            "maintenance",
+            "📢 ANNOUNCEMENTS"
+          )?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.announcements.changelog",
+          getTextChannel(
+            "changelog",
+            "📢 ANNOUNCEMENTS"
+          )?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.announcements.botUpdates",
+          getTextChannel(
+            "bot-updates",
+            "📢 ANNOUNCEMENTS"
+          )?.id || null
+        );
+
+        systemsConfigured++;
+      } catch (error) {
+        systemErrors++;
+
+        console.error(
+          "[Server Maker] Announcement setup failed:",
+          error
+        );
+      }
+
+      /*
+       * ============================================================
+       * 🔐 STAFF ROLES
+       * ============================================================
+       */
+
+      try {
+        await setConfig(
+          "GUILD.SERVER_MAKER.roles.owner",
+          getRole("Server Owner")?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.roles.coOwner",
+          getRole("Co Owner")?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.roles.admin",
+          getRole("Administrator")?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.roles.moderator",
+          getRole("Moderator")?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.roles.support",
+          getRole("Support")?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.roles.ticketStaff",
+          getRole("Ticket Staff")?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.roles.staff",
+          getRole("Staff")?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.roles.developer",
+          getRole("Developer")?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.roles.moderatorHead",
+          getRole("Head Moderator")?.id || null
+        );
+
+        await setConfig(
+          "GUILD.SERVER_MAKER.roles.supportHead",
+          getRole("Head Support")?.id || null
+        );
+
+        systemsConfigured++;
+      } catch (error) {
+        systemErrors++;
+
+        console.error(
+          "[Server Maker] Staff role setup failed:",
+          error
+        );
+      }
+
+      /*
+       * ============================================================
+       * 💾 SERVER MAKER STATE
+       * ============================================================
+       */
+
+      await setConfig(
+        "GUILD.SERVER_MAKER.enabled",
+        true
+      );
+
+      await setConfig(
+        "GUILD.SERVER_MAKER.version",
+        4
+      );
+
+      await setConfig(
+        "GUILD.SERVER_MAKER.setupComplete",
+        true
+      );
+
+      await setConfig(
+        "GUILD.SERVER_MAKER.lastSetup",
+        Date.now()
+      );
+
+      await setConfig(
+        "GUILD.SERVER_MAKER.statistics.rolesCreated",
+        rolesCreated
+      );
+
+      await setConfig(
+        "GUILD.SERVER_MAKER.statistics.channelsCreated",
+        channelsCreated
+      );
+
+      await setConfig(
+        "GUILD.SERVER_MAKER.statistics.categoriesCreated",
+        categoriesCreated
+      );
+
+      await setConfig(
+        "GUILD.SERVER_MAKER.statistics.systemsConfigured",
+        systemsConfigured
+      );
+
+      /*
+       * ============================================================
+       * SAVE CATEGORY IDS
+       * ============================================================
+       */
+
+      const categoryIds: Record<string, string> = {};
+
+      for (const [name, category] of categories) {
+        categoryIds[name] = category.id;
+      }
+
+      await setConfig(
+        "GUILD.SERVER_MAKER.categories",
+        categoryIds
+      );
+
+      /*
+       * ============================================================
+       * SAVE IMPORTANT CHANNEL IDS
+       * ============================================================
+       */
+
+      const importantChannels: Record<
+        string,
+        string | null
+      > = {
+        welcome:
+          getTextChannel(
+            "welcome",
+            "📌 INFORMATION"
+          )?.id || null,
+
+        rules:
+          getTextChannel(
+            "rules",
+            "📌 INFORMATION"
+          )?.id || null,
+
+        serverInfo:
+          getTextChannel(
+            "server-info",
+            "📌 INFORMATION"
+          )?.id || null,
+
+        announcements:
+          getTextChannel(
+            "announcements",
+            "📢 ANNOUNCEMENTS"
+          )?.id || null,
+
+        general:
+          getTextChannel(
+            "general",
+            "💬 COMMUNITY"
+          )?.id || null,
+
+        tickets:
+          getTextChannel(
+            "create-ticket",
+            "🎫 SUPPORT"
+          )?.id || null,
+
+        ticketLogs:
+          getTextChannel(
+            "ticket-logs",
+            "📊 LOGGING"
+          )?.id || null,
+
+        xp:
+          getTextChannel(
+            "xp-chat",
+            "⭐ LEVELING"
+          )?.id || null,
+
+        levelUp:
+          getTextChannel(
+            "level-up",
+            "⭐ LEVELING"
+          )?.id || null,
+
+        suggestions:
+          getTextChannel(
+            "suggestions",
+            "💡 SUGGESTIONS"
+          )?.id || null,
+
+        giveaways:
+          getTextChannel(
+            "giveaways",
+            "🎁 GIVEAWAYS"
+          )?.id || null,
+
+        economy:
+          getTextChannel(
+            "economy",
+            "💰 ECONOMY"
+          )?.id || null,
+
+        botCommands:
+          getTextChannel(
+            "bot-commands",
+            "🤖 BOTS"
+          )?.id || null
+      };
+
+      await setConfig(
+        "GUILD.SERVER_MAKER.channels",
+        importantChannels
+      );
+
+      /*
+       * ============================================================
+       * AUTOMATIC SETUP MESSAGE
+       * ============================================================
+       */
+
+      try {
+        const serverInfo =
+          getTextChannel(
+            "server-info",
+            "📌 INFORMATION"
+          );
+
+        if (serverInfo) {
+          const messages =
+            await serverInfo.messages.fetch({
+              limit: 50
+            });
+
+          const alreadyExists =
+            messages.some(
+              (message) =>
+                message.author.id === client.user?.id &&
+                message.embeds.some(
+                  (embed) =>
+                    embed.footer?.text ===
+                    "NMDBOT_AUTO_SERVER_SETUP"
+                )
+            );
+
+          if (!alreadyExists) {
+            const embed =
+              new EmbedBuilder()
+                .setColor("#5865F2")
+                .setTitle(
+                  "🤖 NMDBot Server Setup Complete"
+                )
+                .setDescription(
+                  [
+                    "Welcome! NMDBot automatically configured this server.",
+                    "",
+                    "### ⚙️ Systems configured",
+                    "🎫 **Tickets**",
+                    "⭐ **XP / Leveling**",
+                    "📊 **Logging**",
+                    "👋 **Welcome**",
+                    "💡 **Suggestions**",
+                    "🎁 **Giveaways**",
+                    "🛡️ **Moderation**",
+                    "💰 **Economy**",
+                    "🏆 **Leaderboards**",
+                    "🤖 **Bot channels**",
+                    "📢 **Announcements**",
+                    "🔐 **Staff roles**",
+                    "",
+                    "### 📊 Setup statistics",
+                    `👑 Roles created: **${rolesCreated}**`,
+                    `📁 Categories created: **${categoriesCreated}**`,
+                    `💬 Channels created: **${channelsCreated}**`,
+                    `⚙️ Systems configured: **${systemsConfigured}**`,
+                    `⚠️ System errors: **${systemErrors}**`,
+                    "",
+                    "You can now use the server with NMDBot."
+                  ].join("\n")
+                )
+                .setFooter({
+                  text: "NMDBOT_AUTO_SERVER_SETUP"
+                })
+                .setTimestamp();
+
+            await serverInfo.send({
+              embeds: [embed]
+            });
+          }
+        }
+      } catch (error) {
+        console.error(
+          "[Server Maker] Setup message failed:",
+          error
+        );
       }
 
       /*
@@ -1100,40 +2374,28 @@ export const command: Command = {
 
       await interaction.editReply({
         content:
-          "## 🏗️ NMDBot Universal Server Maker\n\n" +
-          "✅ **Universal server setup completed!**\n\n" +
+          "## 🤖 NMDBot Universal Server Maker\n\n" +
+          "✅ **Server structure + automatic configuration completed!**\n\n" +
           `👑 Roles created: **${rolesCreated}**\n` +
+          `📁 Categories created: **${categoriesCreated}**\n` +
           `💬 Channels created: **${channelsCreated}**\n` +
-          `📁 Categories: **${categoryNames.length}**\n\n` +
-          "### Included systems\n" +
-          "📌 Information\n" +
-          "👋 Welcome & verification\n" +
-          "📢 Announcements\n" +
-          "💬 Community\n" +
-          "🎉 Events\n" +
-          "🎁 Giveaways\n" +
-          "💡 Suggestions\n" +
-          "🎫 Support & tickets\n" +
-          "🛡️ Moderation\n" +
-          "🔐 Staff\n" +
-          "📊 Logging\n" +
-          "🤖 Bots\n" +
-          "⭐ Leveling\n" +
-          "💰 Economy\n" +
-          "🏆 Leaderboards\n" +
-          "🎮 Gaming\n" +
-          "🏅 Esports\n" +
-          "🎨 Media\n" +
-          "🎥 Creator\n" +
-          "💻 Development\n" +
-          "🧪 Testing\n" +
-          "📰 News\n" +
-          "🎵 Music\n" +
-          "📚 Education\n" +
-          "🌍 Social\n" +
-          "🔊 Voice\n\n" +
+          `⚙️ Systems configured: **${systemsConfigured}**\n` +
+          `⚠️ System errors: **${systemErrors}**\n\n` +
+          "### 🔧 Automatically configured\n" +
+          "🎫 Ticket configuration\n" +
+          "⭐ XP / Leveling configuration\n" +
+          "📊 Server logging\n" +
+          "👋 Welcome configuration\n" +
+          "💡 Suggestions configuration\n" +
+          "🎁 Giveaway configuration\n" +
+          "🛡️ Moderation configuration\n" +
+          "💰 Economy configuration\n" +
+          "🏆 Leaderboard configuration\n" +
+          "🤖 Bot channels\n" +
+          "📢 Announcement channels\n" +
+          "🔐 Staff roles\n\n" +
           "♻️ Existing roles and channels were preserved.\n" +
-          "🔁 You can safely run `/server_maker` again without intentionally creating duplicates."
+          "🔁 Running `/server_maker` again is safe."
       });
     } catch (error) {
       console.error(
@@ -1145,7 +2407,7 @@ export const command: Command = {
         await interaction.editReply({
           content:
             "❌ **Server Maker failed.**\n\n" +
-            "Make sure NMDBot has **Administrator**, or at minimum **Manage Channels + Manage Roles**, and that the NMDBot role is high enough in the role hierarchy.\n\n" +
+            "Make sure NMDBot has **Administrator**, or at minimum **Manage Channels + Manage Roles**, and make sure the NMDBot role is above the roles it needs to manage.\n\n" +
             "Check the Render logs for the exact Discord API error."
         });
       } catch {
