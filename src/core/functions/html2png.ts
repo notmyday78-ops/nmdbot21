@@ -1,29 +1,19 @@
 /*
-・ iHorizon Discord Bot (https://gitlab.com/ihrz/ihrz)
-
-・ Licensed under the Attribution-NonCommercial-ShareAlike 4.0 International (CC-BY-NC-SA-4.0)
-
-	・   Under the following terms:
-
-		・ Attribution — You must give appropriate credit, provide a link to the license, and indicate if changes were made. You may do so in any reasonable manner, but not in any way that suggests the licensor endorses you or your use.
-
-		・ NonCommercial — You may not use the material for commercial purposes.
-
-		・ ShareAlike — If you remix, transform, or build upon the material, you must distribute your contributions under the same license as the original.
-
-		・ No additional restrictions — You may not apply legal terms or technological measures that legally restrict others from doing anything the license permits.
-
-
-・ Mainly developed by Kisakay (https://gitlab.com/Kisakay)
-
-・ Copyright © 2020-2026 iHorizon
-*/
+ * NMDBot
+ *
+ * This file is part of an adaptation of the iHorizon Discord Bot.
+ * Original project: https://github.com/ihrz/ihrz
+ *
+ * License: CC BY-NC-SA 4.0
+ * This version contains modifications.
+ */
 
 import { Browser, launch } from "puppeteer";
 import { axios } from "./axios.ts";
 import * as apiUrlParser from "./apiUrlParser.js";
 
 let browser: Browser | null = null;
+let browserUnavailable = false;
 
 export interface Html2PngOptions {
 	width?: number;
@@ -38,6 +28,10 @@ export default async function html2Png(
 	code: string,
 	options: Html2PngOptions
 ): Promise<Buffer> {
+	/*
+	 * If the image-generation gateway is configured, use it instead
+	 * of launching a local Chrome instance.
+	 */
 	if (client.config.api.HorizonGateway) {
 		const res = await axios.post(
 			apiUrlParser.HorizonGateway(
@@ -61,8 +55,9 @@ export default async function html2Png(
 				typeof res.data === "string"
 					? res.data
 					: JSON.stringify(res.data);
+
 			throw new Error(
-				`HorizonGateway image generation failed (HTTP ${res.status}): ${message}`
+				`Image generation gateway failed (HTTP ${res.status}): ${message}`
 			);
 		}
 
@@ -73,7 +68,7 @@ export default async function html2Png(
 
 		if (contentType && !contentType.includes("image/png")) {
 			throw new Error(
-				`HorizonGateway image generation returned an unexpected content type: ${contentType}`
+				`Image generation returned an unexpected content type: ${contentType}`
 			);
 		}
 
@@ -83,17 +78,59 @@ export default async function html2Png(
 
 		if (buffer.length === 0) {
 			throw new Error(
-				"HorizonGateway image generation returned an empty image."
+				"Image generation returned an empty image."
 			);
 		}
 
 		return buffer;
-	} else {
-		if (!browser)
+	}
+
+	/*
+	 * Render environments such as Render may not have Chrome installed.
+	 * Do not repeatedly try to launch it every minute.
+	 */
+	if (browserUnavailable) {
+		throw new Error(
+			"Local Chrome is unavailable. HTML-to-PNG generation is disabled."
+		);
+	}
+
+	try {
+		if (!browser) {
 			browser = await launch({
-				args: ["--no-sandbox", "--disable-setuid-sandbox"]
+				args: [
+					"--no-sandbox",
+					"--disable-setuid-sandbox",
+					"--disable-dev-shm-usage",
+					"--disable-gpu"
+				]
 			});
+		}
+
 		return await localRender(code, options);
+	} catch (error) {
+		/*
+		 * Chrome/Puppeteer errors should not continuously crash
+		 * monitoring systems on servers where Chrome is unavailable.
+		 */
+		const message =
+			error instanceof Error ? error.message : String(error);
+
+		if (
+			message.includes("Could not find Chrome") ||
+			message.includes("Could not find Chromium") ||
+			message.includes("Executable doesn't exist") ||
+			message.includes("No executable was found")
+		) {
+			browserUnavailable = true;
+
+			console.warn(
+				"[NMDBot] Local Chrome is unavailable. " +
+				"HTML-to-PNG generation has been disabled."
+			);
+		}
+
+		throw error;
 	}
 }
 
@@ -108,9 +145,13 @@ async function localRender(
 		selectElement: false
 	}
 ): Promise<Buffer> {
-	try {
-		const page = await browser!.newPage();
+	if (!browser) {
+		throw new Error("Browser is not available.");
+	}
 
+	const page = await browser.newPage();
+
+	try {
 		await page.setViewport({
 			width: options.width ?? 1280,
 			height: options.height ?? 800,
@@ -119,23 +160,36 @@ async function localRender(
 
 		await page.setContent(code);
 
-		let imageBuffer;
+		let imageBuffer: Uint8Array;
+
 		if (options.selectElement && options.elementSelector) {
 			await page.evaluate(() => {
 				document.body.style.background = "transparent";
 			});
+
 			await page.evaluate((selector) => {
-				const element: any = document.querySelector(selector);
+				const element: HTMLElement | null =
+					document.querySelector(selector);
+
 				if (element) {
 					element.style.margin = "0";
 					element.style.padding = "0";
 				}
 			}, options.elementSelector);
+
 			const element = await page.$(options.elementSelector);
-			if (!element) throw new Error("Element not found");
+
+			if (!element) {
+				throw new Error("Element not found");
+			}
+
 			const boundingBox = await element.boundingBox();
-			if (!boundingBox)
-				throw new Error("Unable to get bounding box for the element");
+
+			if (!boundingBox) {
+				throw new Error(
+					"Unable to get bounding box for the element"
+				);
+			}
 
 			imageBuffer = await page.screenshot({
 				clip: {
@@ -156,9 +210,8 @@ async function localRender(
 			});
 		}
 
-		await page.close();
 		return Buffer.from(imageBuffer);
-	} catch (error) {
-		throw error;
+	} finally {
+		await page.close();
 	}
 }
