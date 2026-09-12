@@ -196,12 +196,19 @@ class JoinMessageHandler {
 	}
 
 	// Generate join image with current config
-	private async generateImage() {
+private async generateImage() {
+	try {
 		return await generateJoinImage(
 			this.interaction.member as GuildMember,
 			this.imageConfig
 		);
+	} catch (error) {
+		logger.warn(
+			"[NMDBot] Join image generation unavailable. Continuing without image."
+		);
+		return null;
 	}
+}
 
 	// Update database with current image config
 	private async saveImageConfig() {
