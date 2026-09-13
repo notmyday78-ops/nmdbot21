@@ -46,24 +46,6 @@ export async function changeGuildBotName(
 
 	return res.status === 200;
 }
-
-export async function changeGuildBotBanner(
-	guild: Guild,
-	banner: string
-): Promise<boolean> {
-	const res = await fetch(
-		GUILD_ME_WITH_GUILD_ID_ENDPOINT_URL.replace("{guild.id}", guild.id),
-		{
-			method: "PATCH",
-			headers: {
-				Authorization: `Bot ${client.token}`,
-				"X-Audit-Log-Reason": "OWNIHRZ INSIDE IHORIZON",
-				"Content-Type": "application/json"
-			},
-			body: JSON.stringify({
-				banner
-			})
-		}
 	);
 
 	return res.status === 200;
