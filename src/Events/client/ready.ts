@@ -273,7 +273,6 @@ export const event: BotEvent = {
 						extension: "png",
 						size: 4096
 					}),
-					bio: client.func.retrieveMyself.retrieveBio()
 				}
 			});
 		}
