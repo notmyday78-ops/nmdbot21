@@ -62,6 +62,7 @@ import { TemproleManager } from "./modules/tempRoleManager.js";
 import { TempbanManager } from "./modules/tempbanManager.js";
 import { Mailer } from "./Mailer.js";
 import { LastFMScrobblerManager } from "./modules/lastFMScrobblerManager.js";
+import { startSubscriptionWebhook } from "./subscriptionWebhook.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -157,10 +158,12 @@ export async function main(client: Client) {
 		}
 	}
 
+	startSubscriptionWebhook(client);
+
 	login();
 
 	errorManager.uncaughtExceptionHandler(client);
-
+	
 	client.notifier = new StreamNotifier(
 		process.env.TWITCH_APPLICATION_ID || "",
 		process.env.TWITCH_APPLICATION_SECRET || "",
